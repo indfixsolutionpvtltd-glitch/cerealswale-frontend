@@ -25,10 +25,6 @@ export default function Home() {
             padding: "8px 15px", 
             borderRadius: "5px", 
             textDecoration: "none"
-          }}>
-            Register
-          </a>
-        </div>
       </div>
 <div>
   <a href="/" style={{color:"white", marginRight:"20px", textDecoration:"none"}}>Home</a>
