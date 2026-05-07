@@ -7,6 +7,31 @@ export default function Home() {
     }}>
 
       {/* Navbar */}
+     <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "20px 50px",
+        background: "#2e7d32",
+        color: "white"
+      }}>
+        <h2>🌾 Cerealswale</h2>
+
+        <div>
+          <a href="/" style={{color:"white", marginRight:"20px"}}>Home</a>
+          <a href="/products" style={{color:"white", marginRight:"20px"}}>Products</a>
+          
+          {/* Ye naya link add karein */}
+          <a href="/register" style={{
+            color:"white", 
+            background: "#1b5e20", 
+            padding: "8px 15px", 
+            borderRadius: "5px", 
+            textDecoration: "none"
+          }}>
+            Register
+          </a>
+        </div>
+      </div>
       <div style={{
         display: "flex",
         justifyContent: "space-between",
