@@ -30,6 +30,12 @@ export default function Home() {
           </a>
         </div>
       </div>
+<div>
+  <a href="/" style={{color:"white", marginRight:"20px", textDecoration:"none"}}>Home</a>
+  <a href="/products" style={{color:"white", marginRight:"20px", textDecoration:"none"}}>Products</a>
+  <a href="/login" style={{color:"white", marginRight:"20px", textDecoration:"none"}}>Login</a>
+  <a href="/register" style={{color:"white", background: "#1b5e20", padding: "8px 15px", borderRadius: "5px", textDecoration: "none"}}>Register</a>
+</div>
           {/* Hero Section */}
       <div style={{
         textAlign: "center",
