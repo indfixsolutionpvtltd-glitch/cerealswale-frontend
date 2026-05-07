@@ -9,36 +9,8 @@ export default function Home() {
       margin: 0
     }}>
 
-      {/* Navbar - Fixed and Cleaned */}
-      <nav style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "15px 50px",
-        background: "#2e7d32",
-        color: "white",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-      }}>
-        <h2 style={{ margin: 0 }}>🌾 Cerealswale</h2>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <a href="/" style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}>Home</a>
-          <a href="/products" style={{ color: "white", textDecoration: "none" }}>Products</a>
-          <a href="/login" style={{ color: "white", textDecoration: "none" }}>Login</a>
-          <a href="/register" style={{
-            color: "white",
-            background: "#1b5e20",
-            padding: "8px 18px",
-            borderRadius: "5px",
-            textDecoration: "none",
-            fontWeight: "bold"
-          }}>
-            Register
-          </a>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
+      {/* Navbar - Fixed and Cleaned */} 
+     {/* Hero Section */}
       <div style={{
         textAlign: "center",
         padding: "100px 20px",
