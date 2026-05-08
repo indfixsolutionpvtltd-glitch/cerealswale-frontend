@@ -1,24 +1,32 @@
 "use client";
 export default function Network() {
   return (
-    <div style={{ padding: "60px 20px", textAlign: "center", background: "#f9f9f9" }}>
-      <h1 style={{ color: "#2e7d32" }}>Our Global & Local Network</h1>
-      <p style={{ maxWidth: "800px", margin: "0 auto", color: "#555" }}>
-        Cerealswale (CATALYST) connects over 10,000+ farmers across India with modern markets.
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px", marginTop: "40px", maxWidth: "1200px", margin: "40px auto" }}>
-        <div style={{ background: "white", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 6px #ddd" }}>
-          <h2>🚜 10K+</h2>
-          <p>Active Farmers</p>
+    <div style={{ fontFamily: 'Arial, sans-serif' }}>
+      {/* Banner */}
+      <section style={{ background: "#1b5e20", color: "white", padding: "60px 20px", textAlign: "center" }}>
+        <h1>Our Vast Network</h1>
+        <p>Connecting thousands of farmers with quality technology across the nation.</p>
+      </section>
+
+      {/* Stats Section */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", padding: "40px 10%", textAlign: "center" }}>
+        <div style={{ padding: "20px", border: "1px solid #eee", borderRadius: "10px" }}>
+          <h2 style={{ color: "#2e7d32" }}>15+</h2>
+          <p>Indian States</p>
         </div>
-        <div style={{ background: "white", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 6px #ddd" }}>
-          <h2>📍 15+</h2>
-          <p>States Covered</p>
+        <div style={{ padding: "20px", border: "1px solid #eee", borderRadius: "10px" }}>
+          <h2 style={{ color: "#2e7d32" }}>500+</h2>
+          <p>Distributors</p>
         </div>
-        <div style={{ background: "white", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 6px #ddd" }}>
-          <h2>🏢 50+</h2>
-          <p>Distributor Centers</p>
+        <div style={{ padding: "20px", border: "1px solid #eee", borderRadius: "10px" }}>
+          <h2 style={{ color: "#2e7d32" }}>10,000+</h2>
+          <p>Happy Farmers</p>
         </div>
+      </div>
+
+      {/* Network Image/Map Placeholder */}
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <img src="https://images.unsplash.com/photo-1589923188900-85dae523342b?w=800" alt="Farming Network" style={{ width: "100%", maxWidth: "800px", borderRadius: "20px" }} />
       </div>
     </div>
   );
