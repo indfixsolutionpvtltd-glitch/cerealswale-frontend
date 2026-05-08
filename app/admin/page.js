@@ -1,21 +1,33 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
-import { ref, onValue, push, set, update } from "firebase/database";
+import { ref, onValue, push, set, update, remove } from "firebase/database";
+import { 
+  LayoutDashboard, Package, ShoppingCart, Users, 
+  TrendingUp, AlertTriangle, Search, Plus, 
+  FileText, Trash2, CheckCircle, Menu, X 
+} from "lucide-react";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Legend 
+} from 'recharts';
 
 export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pass, setPass] = useState("");
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Form States
   const [pName, setPName] = useState("");
   const [pCategory, setPCategory] = useState("Cereals");
   const [pPrice, setPPrice] = useState("");
+  const [pSalePrice, setPSalePrice] = useState("");
   const [pUnit, setPUnit] = useState("1kg");
   const [pImage, setPImage] = useState("");
+  const [pStock, setPStock] = useState("In Stock");
 
   const verifyAdmin = () => {
     if (pass === "Ankur@123") setIsAuthorized(true);
@@ -42,112 +54,173 @@ export default function AdminDashboard() {
       name: pName,
       category: pCategory,
       price: pPrice,
+      salePrice: pSalePrice || pPrice,
       unit: pUnit,
       image: pImage || "https://via.placeholder.com/150",
-      status: "In Stock"
+      stockStatus: pStock,
+      createdAt: new Date().toISOString()
     }).then(() => {
       alert("Product Added Successfully! ✅");
-      setPName(""); setPPrice(""); setPImage("");
+      setPName(""); setPPrice(""); setPSalePrice(""); setPImage("");
     });
   };
 
+  // Analytics Data
+  const chartData = [
+    { name: 'Pending', count: orders.filter(o => o.status === 'Pending').length },
+    { name: 'Shipped', count: orders.filter(o => o.status === 'Shipped').length },
+    { name: 'Delivered', count: orders.filter(o => o.status === 'Confirmed').length },
+  ];
+
   if (!isAuthorized) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#f0fdf4" }}>
-        <div style={{ padding: "40px", background: "white", borderRadius: "15px", textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", width: "350px" }}>
-          <h2 style={{ color: "#166534", marginBottom: "20px" }}>🔐 CATALYST Admin</h2>
-          <input type="password" placeholder="Password" onChange={(e) => setPass(e.target.value)} style={{ width: "100%", padding: "12px", marginBottom: "20px", borderRadius: "8px", border: "1px solid #ddd" }} />
-          <button onClick={verifyAdmin} style={{ width: "100%", padding: "12px", background: "#166534", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>Login</button>
+      <div className="flex items-center justify-center min-h-screen bg-green-50">
+        <div className="p-10 bg-white rounded-2xl shadow-xl text-center w-96 border border-green-100">
+          <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <LayoutDashboard className="text-white" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">CATALYST Admin</h2>
+          <p className="text-gray-500 mb-6">Enter password to manage Cerealswale</p>
+          <input 
+            type="password" 
+            placeholder="Enter Admin Password" 
+            className="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-green-500 outline-none"
+            onChange={(e) => setPass(e.target.value)} 
+          />
+          <button 
+            onClick={verifyAdmin} 
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition"
+          >
+            Login to Dashboard
+          </button>
         </div>
       </div>
     );
   }
 
-  const revenue = orders.reduce((a, b) => a + (Number(b.price) || 0), 0);
-
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", fontFamily: "sans-serif" }}>
+    <div className="flex min-h-screen bg-gray-50 font-sans">
       {/* Sidebar */}
-      <div style={{ width: sidebarOpen ? "240px" : "0px", background: "#064e3b", color: "white", transition: "0.3s", overflow: "hidden", whiteSpace: "nowrap" }}>
-        <div style={{ padding: "20px" }}>
-          <h2 style={{ fontSize: "20px", marginBottom: "40px" }}>🌾 Cerealswale</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
-            <div style={{ cursor: "pointer" }}>🏠 Dashboard</div>
-            <div style={{ cursor: "pointer" }}>📦 Inventory</div>
-            <div style={{ cursor: "pointer" }}>🛒 Orders ({orders.length})</div>
-            <div style={{ cursor: "pointer" }}>👤 Customers</div>
-          </div>
+      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-green-900 text-white transition-all duration-300 p-5 sticky top-0 h-screen`}>
+        <div className="flex items-center gap-3 mb-10 overflow-hidden">
+          <div className="bg-white p-2 rounded-lg"><Package className="text-green-900" size={24}/></div>
+          <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>Cerealswale</h1>
         </div>
+        
+        <nav className="space-y-4">
+          <div className="flex items-center gap-4 p-3 bg-green-800 rounded-lg cursor-pointer">
+            <LayoutDashboard size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Dashboard</span>
+          </div>
+          <div className="flex items-center gap-4 p-3 hover:bg-green-800 rounded-lg cursor-pointer">
+            <Package size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Inventory</span>
+          </div>
+          <div className="flex items-center gap-4 p-3 hover:bg-green-800 rounded-lg cursor-pointer">
+            <ShoppingCart size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Orders</span>
+          </div>
+        </nav>
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: "30px", overflowX: "hidden" }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ padding: "10px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ddd", background: "white" }}>
-            {sidebarOpen ? "❌ Close Menu" : "☰ Open Menu"}
+      <div className="flex-1 p-8 overflow-x-hidden">
+        <header className="flex justify-between items-center mb-8">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white rounded-lg shadow-sm">
+            {sidebarOpen ? <X size={20}/> : <Menu size={20}/>}
           </button>
-          <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: "14px", color: "#64748b" }}>Admin: Ankur Gupta</span>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search orders..." 
+                className="pl-10 pr-4 py-2 bg-white rounded-lg border-none shadow-sm focus:ring-2 focus:ring-green-500"
+              />
+            </div>
           </div>
         </header>
 
-        {/* Stats Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "30px" }}>
-          <div style={{ background: "#dcfce7", padding: "20px", borderRadius: "15px", border: "1px solid #bbf7d0" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: "#166534" }}>Total Revenue</p>
-            <h2 style={{ margin: "5px 0", color: "#166534" }}>₹{revenue}</h2>
+        {/* 1. Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard icon={<TrendingUp className="text-green-600"/>} title="Total Revenue" value={`₹${orders.reduce((a,b)=>a+(parseInt(b.price)||0),0)}`} color="bg-green-100" />
+          <StatCard icon={<ShoppingCart className="text-blue-600"/>} title="Pending Orders" value={orders.filter(o=>o.status==="Pending").length} color="bg-blue-100" />
+          <StatCard icon={<Users className="text-purple-600"/>} title="Active Merchants" value="12" color="bg-purple-100" />
+          <StatCard icon={<AlertTriangle className="text-red-600"/>} title="Low Stock" value="3 Items" color="bg-red-100" />
+        </div>
+
+        {/* 2. Charts & Form Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Order Graph */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-700 mb-6">Order Delivery Status</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#1b5e20" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div style={{ background: "#dbeafe", padding: "20px", borderRadius: "15px", border: "1px solid #bfdbfe" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: "#1e40af" }}>Orders</p>
-            <h2 style={{ margin: "5px 0", color: "#1e40af" }}>{orders.length}</h2>
-          </div>
-          <div style={{ background: "#fef3c7", padding: "20px", borderRadius: "15px", border: "1px solid #fde68a" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: "#92400e" }}>Products</p>
-            <h2 style={{ margin: "5px 0", color: "#92400e" }}>{products.length}</h2>
+
+          {/* Add Product Form */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Plus size={18}/> Add New Product</h3>
+            <form onSubmit={addProduct} className="space-y-4">
+              <input type="text" placeholder="Product Name" className="w-full p-2 border rounded-md text-sm" value={pName} onChange={(e)=>setPName(e.target.value)} required />
+              <select className="w-full p-2 border rounded-md text-sm" value={pCategory} onChange={(e)=>setPCategory(e.target.value)}>
+                <option>Cereals</option><option>Pulses</option><option>Spices</option>
+              </select>
+              <div className="flex gap-2">
+                <input type="number" placeholder="MRP" className="w-1/2 p-2 border rounded-md text-sm" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required />
+                <input type="number" placeholder="Sale Price" className="w-1/2 p-2 border rounded-md text-sm" value={pSalePrice} onChange={(e)=>setPSalePrice(e.target.value)} />
+              </div>
+              <select className="w-full p-2 border rounded-md text-sm" value={pUnit} onChange={(e)=>setPUnit(e.target.value)}>
+                <option value="500gm">500gm</option><option value="1kg">1kg</option><option value="5kg">5kg</option><option value="1pc">1pc</option>
+              </select>
+              <input type="text" placeholder="Image URL" className="w-full p-2 border rounded-md text-sm" value={pImage} onChange={(e)=>setPImage(e.target.value)} />
+              <button className="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700 transition">Save Product</button>
+            </form>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: "30px", alignItems: "start" }}>
-          {/* Recent Orders Table */}
-          <div style={{ background: "white", padding: "20px", borderRadius: "15px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-            <h3 style={{ marginBottom: "20px" }}>Recent Orders</h3>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead style={{ background: "#f1f5f9", textAlign: "left" }}>
-                <tr>
-                  <th style={{ padding: "12px" }}>Customer</th>
-                  <th style={{ padding: "12px" }}>Product</th>
-                  <th style={{ padding: "12px" }}>Status</th>
+        {/* 3. Orders Table */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-bottom flex justify-between items-center">
+            <h3 className="font-bold text-gray-700">Recent Orders & Invoices</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                  <th className="p-4">Customer</th>
+                  <th className="p-4">Product</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4">Payment</th>
+                  <th className="p-4">Invoice</th>
                 </tr>
               </thead>
-              <tbody>
-                {orders.map(o => (
-                  <tr key={o.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px", fontWeight: "bold" }}>{o.customerName}</td>
-                    <td style={{ padding: "12px" }}>{o.productName}</td>
-                    <td style={{ padding: "12px" }}>
-                      <span style={{ padding: "4px 10px", borderRadius: "20px", background: "#fef3c7", fontSize: "12px" }}>{o.status}</span>
+              <tbody className="divide-y divide-gray-100">
+                {orders.map((o) => (
+                  <tr key={o.id} className="hover:bg-gray-50 transition">
+                    <td className="p-4 font-medium">{o.customerName}</td>
+                    <td className="p-4 text-gray-600">{o.productName}</td>
+                    <td className="p-4 font-bold text-green-700">₹{o.price}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${o.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                        {o.status === 'Confirmed' ? 'PAID' : 'PENDING'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold text-sm">
+                        <FileText size={16}/> PDF
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-
-          {/* Add Product Form */}
-          <div style={{ background: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-            <h3 style={{ marginBottom: "15px" }}>➕ Add Product</h3>
-            <form onSubmit={addProduct} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={inputStyle} />
-              <select value={pCategory} onChange={(e)=>setPCategory(e.target.value)} style={inputStyle}>
-                <option>Cereals</option><option>Pulses</option><option>Spices</option>
-              </select>
-              <input type="number" placeholder="Price (₹)" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={inputStyle} />
-              <select value={pUnit} onChange={(e)=>setPUnit(e.target.value)} style={inputStyle}>
-                <option value="1kg">1 kg</option><option value="5kg">5 kg</option><option value="500gm">500 gm</option><option value="1pc">1 pc</option>
-              </select>
-              <input type="text" placeholder="Image URL" value={pImage} onChange={(e)=>setPImage(e.target.value)} style={inputStyle} />
-              <button type="submit" style={{ padding: "12px", background: "#166534", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>Save Product</button>
-            </form>
           </div>
         </div>
       </div>
@@ -155,4 +228,15 @@ export default function AdminDashboard() {
   );
 }
 
-const inputStyle = { padding: "12px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px", outline: "none" };
+// Component for Stats Cards
+function StatCard({ icon, title, value, color }) {
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+      <div className={`${color} p-4 rounded-xl`}>{icon}</div>
+      <div>
+        <p className="text-gray-400 text-sm font-medium">{title}</p>
+        <h4 className="text-xl font-bold text-gray-800">{value}</h4>
+      </div>
+    </div>
+  );
+}
