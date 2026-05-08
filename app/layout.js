@@ -1,4 +1,10 @@
-"use client";
+import React from 'react';
+
+export const metadata = {
+  title: 'Cerealswale | Smart Agriculture Solutions',
+  description: 'Empowering farmers with high-quality seeds',
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -14,7 +20,7 @@ export default function RootLayout({ children }) {
              <span style={{ fontSize: "20px", fontWeight: "bold", color: "#2e7d32" }}>CEREALSWALE</span>
           </div>
 
-          {/* Responsive Links */}
+          {/* Links Section */}
           <div style={{ display: "flex", gap: "15px", fontSize: "13px", fontWeight: "600", flexWrap: "wrap", padding: "10px 0" }}>
             <a href="/" style={{ color: "#333", textDecoration: "none" }}>HOME</a>
             <a href="/company" style={{ color: "#333", textDecoration: "none" }}>COMPANY</a>
