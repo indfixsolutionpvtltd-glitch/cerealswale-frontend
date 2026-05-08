@@ -1,17 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
+import { db, storage } from "../lib/firebase";
 import { ref, onValue, push, set, update, remove } from "firebase/database";
+import { ref as sRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pass, setPass] = useState("");
   const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]); 
+  const [products, setProducts] = useState([]);
   
   const [pName, setPName] = useState("");
   const [pPrice, setPPrice] = useState("");
-  const [pImage, setPImage] = useState(""); // Image URL store karne ke liye
+  const [imageFile, setImageFile] = useState(null); // File store karne ke liye
+  const [uploading, setUploading] = useState(false);
 
   const verifyAdmin = () => {
     if (pass === "Ankur@123") setIsAuthorized(true);
@@ -20,51 +22,48 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthorized) {
-      const ordersRef = ref(db, 'orders');
-      onValue(ordersRef, (snapshot) => {
+      onValue(ref(db, 'orders'), (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          setOrders(list.reverse());
-        }
+        if (data) setOrders(Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse());
       });
 
-      const productsRef = ref(db, 'products');
-      onValue(productsRef, (snapshot) => {
+      onValue(ref(db, 'products'), (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          setProducts(list);
-        } else {
-          setProducts([]);
-        }
+        if (data) setProducts(Object.keys(data).map(key => ({ id: key, ...data[key] })));
+        else setProducts([]);
       });
     }
   }, [isAuthorized]);
 
-  const addProduct = (e) => {
+  const handleAddProduct = async (e) => {
     e.preventDefault();
-    const productsRef = ref(db, 'products');
-    const newProductRef = push(productsRef);
+    if (!imageFile) return alert("Please select an image first!");
+    
+    setUploading(true);
+    try {
+      // 1. Image Upload to Firebase Storage
+      const fileRef = sRef(storage, `product_images/${Date.now()}_${imageFile.name}`);
+      await uploadBytes(fileRef, imageFile);
+      const imageUrl = await getDownloadURL(fileRef);
 
-    set(newProductRef, {
-      name: pName,
-      price: pPrice,
-      image: pImage || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", // Default image agar URL na ho
-    }).then(() => {
-      alert("Product with Image Added! ✅");
-      setPName(""); setPPrice(""); setPImage("");
-    });
+      // 2. Save Product Data to Database
+      const newProductRef = push(ref(db, 'products'));
+      await set(newProductRef, {
+        name: pName,
+        price: pPrice,
+        image: imageUrl,
+      });
+
+      alert("Product Uploaded Successfully! ✅");
+      setPName(""); setPPrice(""); setImageFile(null);
+    } catch (error) {
+      alert("Error: " + error.message);
+    }
+    setUploading(false);
   };
 
   const deleteProduct = (id) => {
-    if (confirm("Kya aap waqai is product ko delete karna chahte hain?")) {
-      remove(ref(db, `products/${id}`)).then(() => alert("Deleted! 🗑️"));
-    }
-  };
-
-  const updateStatus = (id, status) => {
-    update(ref(db, `orders/${id}`), { status: status });
+    if (confirm("Delete this product?")) remove(ref(db, `products/${id}`));
   };
 
   if (!isAuthorized) {
@@ -88,79 +87,48 @@ export default function AdminDashboard() {
       </div>
 
       <div style={{ flex: 1, padding: "40px" }}>
-        {/* SECTION 1: Add Product with Image */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-          <h3>➕ Add New Product</h3>
-          <form onSubmit={addProduct} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: 1 }} />
-            <input type="number" placeholder="Price" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={{ padding: "10px", width: "100px" }} />
-            <input type="text" placeholder="Image URL (Link)" value={pImage} onChange={(e)=>setPImage(e.target.value)} style={{ padding: "10px", flex: 1 }} />
-            <button type="submit" style={{ padding: "10px 20px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add</button>
+          <h3>➕ Add New Product (Direct Upload)</h3>
+          <form onSubmit={handleAddProduct} style={{ display: "flex", gap: "15px", flexDirection: "column" }}>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: 1 }} />
+              <input type="number" placeholder="Price" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={{ padding: "10px", width: "150px" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} required style={{ padding: "10px", border: "1px dashed #2e7d32", borderRadius: "5px", flex: 1 }} />
+              <button type="submit" disabled={uploading} style={{ padding: "12px 30px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>
+                {uploading ? "Uploading..." : "Publish Product"}
+              </button>
+            </div>
           </form>
-          <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>*Aap Google se koi bhi image link copy karke yahan daal sakte hain.</p>
         </section>
 
-        {/* SECTION 2: Manage Products Table with Preview */}
-        <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
+        {/* Manage Products Table */}
+        <section style={{ background: "white", padding: "25px", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
           <h3>⚙️ Manage Products</h3>
-          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ textAlign: "left", color: "#666", fontSize: "14px" }}>
-                  <th style={{ padding: "10px" }}>Image</th>
-                  <th style={{ padding: "10px" }}>Product Name</th>
-                  <th style={{ padding: "10px" }}>Price</th>
-                  <th style={{ padding: "10px" }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map(p => (
-                  <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                    <td style={{ padding: "10px" }}>
-                      <img src={p.image} alt="img" style={{ width: "40px", height: "40px", borderRadius: "5px", objectFit: "cover" }} />
-                    </td>
-                    <td style={{ padding: "10px" }}>{p.name}</td>
-                    <td style={{ padding: "10px" }}>₹{p.price}</td>
-                    <td style={{ padding: "10px" }}>
-                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* SECTION 3: Live Orders */}
-        <h1>Live Orders</h1>
-        <div style={{ background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ background: "#f8f9fa", textAlign: "left" }}>
-                <th style={{ padding: "15px" }}>Customer</th>
-                <th style={{ padding: "15px" }}>Product</th>
-                <th style={{ padding: "15px" }}>Price</th>
-                <th style={{ padding: "15px" }}>Status</th>
+              <tr style={{ textAlign: "left", color: "#666" }}>
+                <th style={{ padding: "10px" }}>Image</th>
+                <th style={{ padding: "10px" }}>Name</th>
+                <th style={{ padding: "10px" }}>Price</th>
+                <th style={{ padding: "10px" }}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map(order => (
-                <tr key={order.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "15px", fontWeight: "bold" }}>{order.customerName}</td>
-                  <td style={{ padding: "15px" }}>{order.productName}</td>
-                  <td style={{ padding: "15px" }}>₹{order.price}</td>
-                  <td style={{ padding: "15px" }}>
-                    <select onChange={(e) => updateStatus(order.id, e.target.value)} value={order.status} style={{ padding: "5px" }}>
-                      <option value="Pending">Pending</option>
-                      <option value="Confirmed">Confirmed</option>
-                      <option value="Shipped">Shipped</option>
-                    </select>
+              {products.map(p => (
+                <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                  <td style={{ padding: "10px" }}><img src={p.image} style={{ width: "50px", height: "50px", borderRadius: "5px", objectFit: "cover" }} /></td>
+                  <td style={{ padding: "10px" }}>{p.name}</td>
+                  <td style={{ padding: "10px" }}>₹{p.price}</td>
+                  <td style={{ padding: "10px" }}>
+                    <button onClick={() => deleteProduct(p.id)} style={{ background: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
       </div>
     </div>
   );
