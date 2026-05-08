@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
-import { ref, onValue, push, set, update } from "firebase/database";
+import { ref, onValue, push, set, update, remove } from "firebase/database";
 
 export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pass, setPass] = useState("");
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]); // Products store karne ke liye
   
-  // Product States
   const [pName, setPName] = useState("");
   const [pPrice, setPPrice] = useState("");
   const [pImage, setPImage] = useState("");
@@ -20,12 +20,25 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthorized) {
+      // Orders Fetch karna
       const ordersRef = ref(db, 'orders');
       onValue(ordersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
           setOrders(list.reverse());
+        }
+      });
+
+      // Products Fetch karna Manage karne ke liye
+      const productsRef = ref(db, 'products');
+      onValue(productsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+          setProducts(list);
+        } else {
+          setProducts([]);
         }
       });
     }
@@ -44,6 +57,16 @@ export default function AdminDashboard() {
       alert("Product Added! ✅");
       setPName(""); setPPrice(""); setPImage("");
     });
+  };
+
+  // --- Naya Delete Function ---
+  const deleteProduct = (id) => {
+    if (confirm("Kya aap waqai is product ko delete karna chahte hain?")) {
+      const productRef = ref(db, `products/${id}`);
+      remove(productRef)
+        .then(() => alert("Product Deleted! 🗑️"))
+        .catch((err) => alert("Error: " + err.message));
+    }
   };
 
   const updateStatus = (id, status) => {
@@ -68,20 +91,50 @@ export default function AdminDashboard() {
       <div style={{ width: "260px", background: "#1b5e20", color: "white", padding: "30px 20px" }}>
         <h2>ADMIN PANEL</h2>
         <p>📦 Total Orders: {orders.length}</p>
+        <p>🛒 Live Products: {products.length}</p>
       </div>
 
       <div style={{ flex: 1, padding: "40px" }}>
+        {/* SECTION 1: Add Product */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-          <h3>Add New Product</h3>
+          <h3>➕ Add New Product</h3>
           <form onSubmit={addProduct} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: 1 }} />
             <input type="number" placeholder="Price" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={{ padding: "10px", width: "100px" }} />
-            <button type="submit" style={{ padding: "10px 20px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px" }}>Add</button>
+            <button type="submit" style={{ padding: "10px 20px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add</button>
           </form>
         </section>
 
+        {/* SECTION 2: Manage Products (Delete Section) */}
+        <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
+          <h3>⚙️ Manage Products</h3>
+          <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", color: "#666", fontSize: "14px" }}>
+                  <th style={{ padding: "10px" }}>Product Name</th>
+                  <th style={{ padding: "10px" }}>Price</th>
+                  <th style={{ padding: "10px" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map(p => (
+                  <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                    <td style={{ padding: "10px" }}>{p.name}</td>
+                    <td style={{ padding: "10px" }}>₹{p.price}</td>
+                    <td style={{ padding: "10px" }}>
+                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Delete 🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* SECTION 3: Live Orders */}
         <h1>Live Orders</h1>
-        <div style={{ background: "white", borderRadius: "12px", overflow: "hidden" }}>
+        <div style={{ background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8f9fa", textAlign: "left" }}>
