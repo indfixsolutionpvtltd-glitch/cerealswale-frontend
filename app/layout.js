@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
           </div>
 
           {/* Links Section */}
-          <div style={{ display: "flex", gap: "15px", fontSize: "13px", fontWeight: "600", flexWrap: "wrap", padding: "10px 0" }}>
+          <div style={{ display: "flex", gap: "12px", fontSize: "12px", fontWeight: "600", flexWrap: "wrap", padding: "10px 0" }}>
             <a href="/" style={{ color: "#333", textDecoration: "none" }}>HOME</a>
             <a href="/company" style={{ color: "#333", textDecoration: "none" }}>COMPANY</a>
             <a href="/solutions" style={{ color: "#333", textDecoration: "none" }}>SOLUTIONS</a>
@@ -29,6 +29,11 @@ export default function RootLayout({ children }) {
             <a href="/network" style={{ color: "#333", textDecoration: "none" }}>NETWORK</a>
             <a href="/careers" style={{ color: "#333", textDecoration: "none" }}>CAREERS</a>
             <a href="/contact" style={{ color: "#333", textDecoration: "none" }}>CONTACT US</a>
+            
+            {/* Login & Register Links (Ab yahan dikhenge) */}
+            <a href="/login" style={{ color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "2px 8px", borderRadius: "4px" }}>LOGIN</a>
+            <a href="/register" style={{ background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "3px 10px", borderRadius: "4px" }}>REGISTER</a>
+            
             <a href="/admin" style={{ color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "2px 8px", borderRadius: "4px" }}>ADMIN</a>
           </div>
         </nav>
