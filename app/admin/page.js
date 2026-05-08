@@ -7,11 +7,11 @@ export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pass, setPass] = useState("");
   const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]); // Products store karne ke liye
+  const [products, setProducts] = useState([]); 
   
   const [pName, setPName] = useState("");
   const [pPrice, setPPrice] = useState("");
-  const [pImage, setPImage] = useState("");
+  const [pImage, setPImage] = useState(""); // Image URL store karne ke liye
 
   const verifyAdmin = () => {
     if (pass === "Ankur@123") setIsAuthorized(true);
@@ -20,7 +20,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthorized) {
-      // Orders Fetch karna
       const ordersRef = ref(db, 'orders');
       onValue(ordersRef, (snapshot) => {
         const data = snapshot.val();
@@ -30,7 +29,6 @@ export default function AdminDashboard() {
         }
       });
 
-      // Products Fetch karna Manage karne ke liye
       const productsRef = ref(db, 'products');
       onValue(productsRef, (snapshot) => {
         const data = snapshot.val();
@@ -52,26 +50,21 @@ export default function AdminDashboard() {
     set(newProductRef, {
       name: pName,
       price: pPrice,
-      image: pImage || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2",
+      image: pImage || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", // Default image agar URL na ho
     }).then(() => {
-      alert("Product Added! ✅");
+      alert("Product with Image Added! ✅");
       setPName(""); setPPrice(""); setPImage("");
     });
   };
 
-  // --- Naya Delete Function ---
   const deleteProduct = (id) => {
     if (confirm("Kya aap waqai is product ko delete karna chahte hain?")) {
-      const productRef = ref(db, `products/${id}`);
-      remove(productRef)
-        .then(() => alert("Product Deleted! 🗑️"))
-        .catch((err) => alert("Error: " + err.message));
+      remove(ref(db, `products/${id}`)).then(() => alert("Deleted! 🗑️"));
     }
   };
 
   const updateStatus = (id, status) => {
-    const orderRef = ref(db, `orders/${id}`);
-    update(orderRef, { status: status });
+    update(ref(db, `orders/${id}`), { status: status });
   };
 
   if (!isAuthorized) {
@@ -90,28 +83,31 @@ export default function AdminDashboard() {
     <div style={{ display: "flex", minHeight: "100vh", background: "#f4f7f6" }}>
       <div style={{ width: "260px", background: "#1b5e20", color: "white", padding: "30px 20px" }}>
         <h2>ADMIN PANEL</h2>
-        <p>📦 Total Orders: {orders.length}</p>
-        <p>🛒 Live Products: {products.length}</p>
+        <p>📦 Orders: {orders.length}</p>
+        <p>🛒 Products: {products.length}</p>
       </div>
 
       <div style={{ flex: 1, padding: "40px" }}>
-        {/* SECTION 1: Add Product */}
+        {/* SECTION 1: Add Product with Image */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
           <h3>➕ Add New Product</h3>
           <form onSubmit={addProduct} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: 1 }} />
             <input type="number" placeholder="Price" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={{ padding: "10px", width: "100px" }} />
+            <input type="text" placeholder="Image URL (Link)" value={pImage} onChange={(e)=>setPImage(e.target.value)} style={{ padding: "10px", flex: 1 }} />
             <button type="submit" style={{ padding: "10px 20px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add</button>
           </form>
+          <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>*Aap Google se koi bhi image link copy karke yahan daal sakte hain.</p>
         </section>
 
-        {/* SECTION 2: Manage Products (Delete Section) */}
+        {/* SECTION 2: Manage Products Table with Preview */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
           <h3>⚙️ Manage Products</h3>
-          <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ textAlign: "left", color: "#666", fontSize: "14px" }}>
+                  <th style={{ padding: "10px" }}>Image</th>
                   <th style={{ padding: "10px" }}>Product Name</th>
                   <th style={{ padding: "10px" }}>Price</th>
                   <th style={{ padding: "10px" }}>Action</th>
@@ -120,10 +116,13 @@ export default function AdminDashboard() {
               <tbody>
                 {products.map(p => (
                   <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                    <td style={{ padding: "10px" }}>
+                      <img src={p.image} alt="img" style={{ width: "40px", height: "40px", borderRadius: "5px", objectFit: "cover" }} />
+                    </td>
                     <td style={{ padding: "10px" }}>{p.name}</td>
                     <td style={{ padding: "10px" }}>₹{p.price}</td>
                     <td style={{ padding: "10px" }}>
-                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Delete 🗑️</button>
+                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
                     </td>
                   </tr>
                 ))}
