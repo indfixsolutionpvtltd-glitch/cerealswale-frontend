@@ -2,95 +2,70 @@
 
 export default function Home() {
   return (
-    <div style={{
-      fontFamily: "Arial, sans-serif",
-      background: "#f4fff2",
-      minHeight: "100vh",
-      margin: 0
-    }}>
-
-      {/* Navbar - Fixed and Cleaned */} 
-     {/* Hero Section */}
-      <div style={{
+    <div style={{ fontFamily: "'Segoe UI', Roboto, sans-serif", background: "#fff", margin: 0 }}>
+      
+      {/* Hero Section */}
+      <section style={{
+        padding: "80px 20px",
         textAlign: "center",
-        padding: "100px 20px",
-        background: "linear-gradient(to bottom, #e8f5e9, #f4fff2)"
-      }}>
-        <h1 style={{
-          fontSize: "45px",
-          color: "#1b5e20",
-          marginBottom: "10px"
-        }}>
-          आधुनिक खेती के लिए आधुनिक समाधान
-        </h1>
-
-        <p style={{
-          fontSize: "20px",
-          color: "#555",
-          marginBottom: "30px"
-        }}>
-          उन्नत खेती, खुशहाल किसान 🌱
-        </p>
-
-        <a href="/products">
-          <button style={{
-            padding: "15px 35px",
-            background: "#43a047",
-            color: "white",
-            border: "none",
-            borderRadius: "30px",
-            fontSize: "18px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 4px 15px rgba(67, 160, 71, 0.3)"
-          }}>
-            🛒 Products देखें
-          </button>
-        </a>
-      </div>
-
-      {/* Features Section */}
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: "30px",
-        padding: "60px 20px",
-        flexWrap: "wrap"
-      }}>
-        <FeatureCard title="🌾 Quality Seeds" desc="बेहतरीन गुणवत्ता वाले कृषि उत्पाद" />
-        <FeatureCard title="🚚 Fast Delivery" desc="सीधे आपके खेत तक तेज डिलीवरी" />
-        <FeatureCard title="👨‍🌾 Farmer Support" desc="कृषि विशेषज्ञों की सलाह" />
-      </div>
-
-      {/* Footer */}
-      <footer style={{
-        background: "#1b5e20",
+        background: "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000') center/cover",
         color: "white",
-        padding: "25px",
-        textAlign: "center",
-        marginTop: "auto"
+        minHeight: "60vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center"
       }}>
-        <p style={{ margin: 0 }}>© 2026 Cerealswale | <b>CATALYST SERVICE PRIVATE LIMITED</b></p>
-      </footer>
+        <h1 style={{ fontSize: "clamp(30px, 5vw, 60px)", marginBottom: "20px" }}>Smart Solutions for Modern Agriculture</h1>
+        <p style={{ fontSize: "clamp(16px, 2vw, 22px)", maxWidth: "800px", margin: "0 auto 30px" }}>
+          Empowering farmers with high-quality seeds and innovative agricultural solutions.
+        </p>
+        <div style={{ display: "flex", gap: "15px", justifyContent: "center", flexWrap: "wrap" }}>
+          <a href="/products" style={{ padding: "15px 30px", background: "#43a047", color: "white", borderRadius: "30px", textDecoration: "none", fontWeight: "bold" }}>Our Products</a>
+          <a href="/contact" style={{ padding: "15px 30px", border: "2px solid white", color: "white", borderRadius: "30px", textDecoration: "none", fontWeight: "bold" }}>Contact Us</a>
+        </div>
+      </section>
 
+      {/* Company Section (Agrizone Style) */}
+      <section style={{ padding: "60px 20px", maxWidth: "1200px", margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "center" }}>
+          <div>
+            <h2 style={{ color: "#2e7d32", fontSize: "32px" }}>About Cerealswale</h2>
+            <p style={{ color: "#555", lineHeight: "1.8" }}>
+              Cerealswale (CATALYST SERVICE PRIVATE LIMITED) is dedicated to revolutionizing the agricultural landscape. 
+              We provide end-to-end solutions from quality seeds to expert farming advice.
+            </p>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              <li style={{ marginBottom: "10px" }}>✅ Global Network of Farmers</li>
+              <li style={{ marginBottom: "10px" }}>✅ Innovative Seed Technology</li>
+              <li style={{ marginBottom: "10px" }}>✅ Sustainable Farming Solutions</li>
+            </ul>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=600" alt="Agriculture" style={{ width: "100%", borderRadius: "15px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }} />
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions Grid */}
+      <section style={{ background: "#f9f9f9", padding: "60px 20px" }}>
+        <h2 style={{ textAlign: "center", color: "#1b5e20", marginBottom: "40px" }}>Our Solutions</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "25px", maxWidth: "1200px", margin: "0 auto" }}>
+          <SolutionCard title="Crop Protection" icon="🛡️" />
+          <SolutionCard title="Seed Enhancement" icon="🧬" />
+          <SolutionCard title="Digital Farming" icon="📱" />
+          <SolutionCard title="Yield Optimization" icon="📈" />
+        </div>
+      </section>
     </div>
   );
 }
 
-// Helper Component for Features
-function FeatureCard({ title, desc }) {
+function SolutionCard({ title, icon }) {
   return (
-    <div style={{
-      background: "white",
-      padding: "30px",
-      borderRadius: "15px",
-      width: "260px",
-      textAlign: "center",
-      boxShadow: "0px 10px 20px rgba(0,0,0,0.05)",
-      border: "1px solid #e0e0e0"
-    }}>
-      <h3 style={{ color: "#2e7d32", marginBottom: "10px" }}>{title}</h3>
-      <p style={{ color: "#666", fontSize: "14px" }}>{desc}</p>
+    <div style={{ background: "white", padding: "30px", borderRadius: "10px", textAlign: "center", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
+      <div style={{ fontSize: "40px", marginBottom: "15px" }}>{icon}</div>
+      <h3 style={{ color: "#333" }}>{title}</h3>
+      <p style={{ color: "#777", fontSize: "14px" }}>Innovative technology for better crop results.</p>
     </div>
   );
 }
