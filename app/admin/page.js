@@ -5,11 +5,11 @@ import { ref, onValue, push, set, update, remove } from "firebase/database";
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, 
   TrendingUp, AlertTriangle, Search, Plus, 
-  FileText, Trash2, CheckCircle, Menu, X 
+  FileText, Menu, X 
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Legend 
+  Tooltip, ResponsiveContainer 
 } from 'recharts';
 
 export default function AdminDashboard() {
@@ -17,7 +17,6 @@ export default function AdminDashboard() {
   const [pass, setPass] = useState("");
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Form States
@@ -27,7 +26,6 @@ export default function AdminDashboard() {
   const [pSalePrice, setPSalePrice] = useState("");
   const [pUnit, setPUnit] = useState("1kg");
   const [pImage, setPImage] = useState("");
-  const [pStock, setPStock] = useState("In Stock");
 
   const verifyAdmin = () => {
     if (pass === "Ankur@123") setIsAuthorized(true);
@@ -57,7 +55,6 @@ export default function AdminDashboard() {
       salePrice: pSalePrice || pPrice,
       unit: pUnit,
       image: pImage || "https://via.placeholder.com/150",
-      stockStatus: pStock,
       createdAt: new Date().toISOString()
     }).then(() => {
       alert("Product Added Successfully! ✅");
@@ -65,7 +62,6 @@ export default function AdminDashboard() {
     });
   };
 
-  // Analytics Data
   const chartData = [
     { name: 'Pending', count: orders.filter(o => o.status === 'Pending').length },
     { name: 'Shipped', count: orders.filter(o => o.status === 'Shipped').length },
@@ -74,149 +70,121 @@ export default function AdminDashboard() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-green-50">
-        <div className="p-10 bg-white rounded-2xl shadow-xl text-center w-96 border border-green-100">
-          <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-            <LayoutDashboard className="text-white" size={32} />
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#f0fdf4" }}>
+        <div style={{ background: "white", padding: "40px", borderRadius: "15px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", textAlign: "center", width: "380px", border: "1px solid #dcfce7" }}>
+          <div style={{ background: "#16a34a", width: "60px", height: "60px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+            <LayoutDashboard color="white" size={30} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">CATALYST Admin</h2>
-          <p className="text-gray-500 mb-6">Enter password to manage Cerealswale</p>
+          <h2 style={{ fontSize: "24px", color: "#1f2937", marginBottom: "10px" }}>CATALYST Admin</h2>
           <input 
-            type="password" 
-            placeholder="Enter Admin Password" 
-            className="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-green-500 outline-none"
+            type="password" placeholder="Admin Password" 
+            style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "8px", marginBottom: "20px", outline: "none" }}
             onChange={(e) => setPass(e.target.value)} 
           />
-          <button 
-            onClick={verifyAdmin} 
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition"
-          >
-            Login to Dashboard
-          </button>
+          <button onClick={verifyAdmin} style={{ width: "100%", padding: "12px", background: "#16a34a", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}>Login Dashboard</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", fontFamily: "sans-serif" }}>
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-green-900 text-white transition-all duration-300 p-5 sticky top-0 h-screen`}>
-        <div className="flex items-center gap-3 mb-10 overflow-hidden">
-          <div className="bg-white p-2 rounded-lg"><Package className="text-green-900" size={24}/></div>
-          <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>Cerealswale</h1>
+      <div style={{ width: sidebarOpen ? "250px" : "80px", background: "#064e3b", color: "white", transition: "0.3s", padding: "20px", position: "sticky", top: 0, height: "100vh" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "40px" }}>
+           <Package size={24} />
+           {sidebarOpen && <span style={{ fontWeight: "bold", fontSize: "18px" }}>Cerealswale</span>}
         </div>
-        
-        <nav className="space-y-4">
-          <div className="flex items-center gap-4 p-3 bg-green-800 rounded-lg cursor-pointer">
-            <LayoutDashboard size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Dashboard</span>
-          </div>
-          <div className="flex items-center gap-4 p-3 hover:bg-green-800 rounded-lg cursor-pointer">
-            <Package size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Inventory</span>
-          </div>
-          <div className="flex items-center gap-4 p-3 hover:bg-green-800 rounded-lg cursor-pointer">
-            <ShoppingCart size={20} /> <span className={!sidebarOpen ? 'hidden' : ''}>Orders</span>
-          </div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", background: "#065f46", borderRadius: "8px" }}><LayoutDashboard size={20}/> {sidebarOpen && "Dashboard"}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", cursor: "pointer" }}><Package size={20}/> {sidebarOpen && "Inventory"}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", cursor: "pointer" }}><ShoppingCart size={20}/> {sidebarOpen && "Orders"}</div>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-x-hidden">
-        <header className="flex justify-between items-center mb-8">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white rounded-lg shadow-sm">
+      <div style={{ flex: 1, padding: "30px", overflowX: "hidden" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "white", border: "1px solid #ddd", padding: "8px", borderRadius: "8px", cursor: "pointer" }}>
             {sidebarOpen ? <X size={20}/> : <Menu size={20}/>}
           </button>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search orders..." 
-                className="pl-10 pr-4 py-2 bg-white rounded-lg border-none shadow-sm focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+          <div style={{ position: "relative", width: "300px" }}>
+            <Search style={{ position: "absolute", left: "10px", top: "10px", color: "#94a3b8" }} size={18} />
+            <input type="text" placeholder="Search orders..." style={{ width: "100%", padding: "10px 10px 10px 40px", border: "none", borderRadius: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }} />
           </div>
         </header>
 
-        {/* 1. Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard icon={<TrendingUp className="text-green-600"/>} title="Total Revenue" value={`₹${orders.reduce((a,b)=>a+(parseInt(b.price)||0),0)}`} color="bg-green-100" />
-          <StatCard icon={<ShoppingCart className="text-blue-600"/>} title="Pending Orders" value={orders.filter(o=>o.status==="Pending").length} color="bg-blue-100" />
-          <StatCard icon={<Users className="text-purple-600"/>} title="Active Merchants" value="12" color="bg-purple-100" />
-          <StatCard icon={<AlertTriangle className="text-red-600"/>} title="Low Stock" value="3 Items" color="bg-red-100" />
+        {/* Stats Section */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px", marginBottom: "30px" }}>
+          <StatCard icon={<TrendingUp color="#16a34a"/>} title="Revenue" value={`₹${orders.reduce((a,b)=>a+(Number(b.price)||0),0)}`} color="#dcfce7" />
+          <StatCard icon={<ShoppingCart color="#2563eb"/>} title="Pending" value={orders.filter(o=>o.status==="Pending").length} color="#dbeafe" />
+          <StatCard icon={<Users color="#9333ea"/>} title="Merchants" value="12" color="#f3e8ff" />
+          <StatCard icon={<AlertTriangle color="#dc2626"/>} title="Low Stock" value="3 Items" color="#fee2e2" />
         </div>
 
-        {/* 2. Charts & Form Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Order Graph */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-700 mb-6">Order Delivery Status</h3>
-            <div className="h-64">
+        {/* Charts & Form */}
+        <div style={{ display: "flex", gap: "30px", flexWrap: "wrap", marginBottom: "30px" }}>
+          <div style={{ flex: 2, minWidth: "400px", background: "white", padding: "20px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
+            <h3 style={{ marginBottom: "20px", color: "#374151" }}>Delivery Overview</h3>
+            <div style={{ height: "250px" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#1b5e20" radius={[4, 4, 0, 0]} />
+                  <Tooltip cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="count" fill="#16a34a" radius={[5, 5, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Add Product Form */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Plus size={18}/> Add New Product</h3>
-            <form onSubmit={addProduct} className="space-y-4">
-              <input type="text" placeholder="Product Name" className="w-full p-2 border rounded-md text-sm" value={pName} onChange={(e)=>setPName(e.target.value)} required />
-              <select className="w-full p-2 border rounded-md text-sm" value={pCategory} onChange={(e)=>setPCategory(e.target.value)}>
+          <div style={{ flex: 1, minWidth: "300px", background: "white", padding: "20px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
+            <h3 style={{ marginBottom: "20px" }}><Plus size={18}/> Add Product</h3>
+            <form onSubmit={addProduct} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input type="text" placeholder="Name" style={inputStyle} value={pName} onChange={(e)=>setPName(e.target.value)} required />
+              <select style={inputStyle} value={pCategory} onChange={(e)=>setPCategory(e.target.value)}>
                 <option>Cereals</option><option>Pulses</option><option>Spices</option>
               </select>
-              <div className="flex gap-2">
-                <input type="number" placeholder="MRP" className="w-1/2 p-2 border rounded-md text-sm" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required />
-                <input type="number" placeholder="Sale Price" className="w-1/2 p-2 border rounded-md text-sm" value={pSalePrice} onChange={(e)=>setPSalePrice(e.target.value)} />
+              <div style={{ display: "flex", gap: "10px" }}>
+                <input type="number" placeholder="MRP" style={inputStyle} value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required />
+                <input type="number" placeholder="Sale" style={inputStyle} value={pSalePrice} onChange={(e)=>setPSalePrice(e.target.value)} />
               </div>
-              <select className="w-full p-2 border rounded-md text-sm" value={pUnit} onChange={(e)=>setPUnit(e.target.value)}>
-                <option value="500gm">500gm</option><option value="1kg">1kg</option><option value="5kg">5kg</option><option value="1pc">1pc</option>
+              <select style={inputStyle} value={pUnit} onChange={(e)=>setPUnit(e.target.value)}>
+                <option value="1kg">1kg</option><option value="5kg">5kg</option><option value="500gm">500gm</option>
               </select>
-              <input type="text" placeholder="Image URL" className="w-full p-2 border rounded-md text-sm" value={pImage} onChange={(e)=>setPImage(e.target.value)} />
-              <button className="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700 transition">Save Product</button>
+              <input type="text" placeholder="Image URL" style={inputStyle} value={pImage} onChange={(e)=>setPImage(e.target.value)} />
+              <button style={{ padding: "12px", background: "#16a34a", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>Save Product</button>
             </form>
           </div>
         </div>
 
-        {/* 3. Orders Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-bottom flex justify-between items-center">
-            <h3 className="font-bold text-gray-700">Recent Orders & Invoices</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="p-4">Customer</th>
-                  <th className="p-4">Product</th>
-                  <th className="p-4">Amount</th>
-                  <th className="p-4">Payment</th>
-                  <th className="p-4">Invoice</th>
+        {/* Orders Table */}
+        <div style={{ background: "white", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+          <h3 style={{ padding: "20px", margin: 0, borderBottom: "1px solid #eee" }}>Recent Orders</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+              <thead style={{ background: "#f8fafc" }}>
+                <tr>
+                  <th style={thStyle}>Customer</th>
+                  <th style={thStyle}>Product</th>
+                  <th style={thStyle}>Amount</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={thStyle}>Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-gray-50 transition">
-                    <td className="p-4 font-medium">{o.customerName}</td>
-                    <td className="p-4 text-gray-600">{o.productName}</td>
-                    <td className="p-4 font-bold text-green-700">₹{o.price}</td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${o.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                  <tr key={o.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={tdStyle}>{o.customerName}</td>
+                    <td style={tdStyle}>{o.productName}</td>
+                    <td style={{ ...tdStyle, fontWeight: "bold", color: "#16a34a" }}>₹{o.price}</td>
+                    <td style={tdStyle}>
+                      <span style={{ padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold", background: o.status === "Confirmed" ? "#dcfce7" : "#fee2e2", color: o.status === "Confirmed" ? "#166534" : "#991b1b" }}>
                         {o.status === 'Confirmed' ? 'PAID' : 'PENDING'}
                       </span>
                     </td>
-                    <td className="p-4">
-                      <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold text-sm">
-                        <FileText size={16}/> PDF
-                      </button>
-                    </td>
+                    <td style={tdStyle}><button style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer" }}><FileText size={18}/></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -228,15 +196,18 @@ export default function AdminDashboard() {
   );
 }
 
-// Component for Stats Cards
 function StatCard({ icon, title, value, color }) {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-      <div className={`${color} p-4 rounded-xl`}>{icon}</div>
+    <div style={{ background: "white", padding: "20px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: "15px" }}>
+      <div style={{ background: color, padding: "12px", borderRadius: "12px" }}>{icon}</div>
       <div>
-        <p className="text-gray-400 text-sm font-medium">{title}</p>
-        <h4 className="text-xl font-bold text-gray-800">{value}</h4>
+        <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>{title}</p>
+        <h3 style={{ margin: "5px 0 0", fontSize: "20px" }}>{value}</h3>
       </div>
     </div>
   );
 }
+
+const inputStyle = { padding: "10px", border: "1px solid #ddd", borderRadius: "8px", outline: "none", fontSize: "14px" };
+const thStyle = { padding: "15px", color: "#64748b", fontSize: "13px", fontWeight: "600" };
+const tdStyle = { padding: "15px", fontSize: "14px", color: "#334155" };
