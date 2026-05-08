@@ -9,8 +9,10 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]); 
   
+  // States for New Product
   const [pName, setPName] = useState("");
   const [pPrice, setPPrice] = useState("");
+  const [pUnit, setPUnit] = useState("kg"); // Naya: kg ya pc
   const [pImage, setPImage] = useState(""); 
 
   const verifyAdmin = () => {
@@ -20,17 +22,21 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthorized) {
-      // Live Orders khinchna
+      // Fetch Orders
       onValue(ref(db, 'orders'), (snapshot) => {
         const data = snapshot.val();
         if (data) setOrders(Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse());
       });
 
-      // Live Products khinchna
+      // Fetch Products
       onValue(ref(db, 'products'), (snapshot) => {
         const data = snapshot.val();
-        if (data) setProducts(Object.keys(data).map(key => ({ id: key, ...data[key] })));
-        else setProducts([]);
+        if (data) {
+          const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+          setProducts(list);
+        } else {
+          setProducts([]);
+        }
       });
     }
   }, [isAuthorized]);
@@ -43,10 +49,11 @@ export default function AdminDashboard() {
     set(newProductRef, {
       name: pName,
       price: pPrice,
-      image: pImage || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2",
+      unit: pUnit, // kg ya pc save ho raha hai
+      image: pImage || "https://via.placeholder.com/150",
     }).then(() => {
       alert("Product Successfully Added! ✅");
-      setPName(""); setPPrice(""); setPImage("");
+      setPName(""); setPPrice(""); setPImage(""); setPUnit("kg");
     });
   };
 
@@ -83,38 +90,58 @@ export default function AdminDashboard() {
       </div>
 
       <div style={{ flex: 1, padding: "40px" }}>
-        {/* Step 1: Add Product */}
+        {/* Step 1: Add Product Form */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-          <h3>➕ Add New Product</h3>
-          <form onSubmit={addProduct} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: 1, borderRadius: "5px", border: "1px solid #ddd" }} />
+          <h3 style={{ marginBottom: "20px" }}>➕ Add New Product</h3>
+          <form onSubmit={addProduct} style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <input type="text" placeholder="Product Name" value={pName} onChange={(e)=>setPName(e.target.value)} required style={{ padding: "10px", flex: "1", minWidth: "150px", borderRadius: "5px", border: "1px solid #ddd" }} />
+            
             <input type="number" placeholder="Price (₹)" value={pPrice} onChange={(e)=>setPPrice(e.target.value)} required style={{ padding: "10px", width: "100px", borderRadius: "5px", border: "1px solid #ddd" }} />
-            <input type="text" placeholder="Paste Image Link Here" value={pImage} onChange={(e)=>setPImage(e.target.value)} style={{ padding: "10px", flex: 1, borderRadius: "5px", border: "1px solid #ddd" }} />
-            <button type="submit" style={{ padding: "10px 25px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add Product</button>
+            
+            <select value={pUnit} onChange={(e)=>setPUnit(e.target.value)} style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ddd", background: "white" }}>
+              <option value="kg">per kg</option>
+              <option value="pc">per pc</option>
+              <option value="packet">per packet</option>
+            </select>
+
+            <input type="text" placeholder="Paste Image URL" value={pImage} onChange={(e)=>setPImage(e.target.value)} style={{ padding: "10px", flex: "1", minWidth: "200px", borderRadius: "5px", border: "1px solid #ddd" }} />
+            
+            <button type="submit" style={{ padding: "10px 25px", background: "#2e7d32", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>Add Product</button>
           </form>
         </section>
 
-        {/* Step 2: Manage Existing Products */}
+        {/* Step 2: Manage Inventory */}
         <section style={{ background: "white", padding: "25px", borderRadius: "12px", marginBottom: "30px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
-          <h3>⚙️ Manage Inventory</h3>
-          <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+          <h3 style={{ marginBottom: "20px" }}>⚙️ Manage Inventory</h3>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ textAlign: "left", background: "#f8f9fa", fontSize: "14px" }}>
-                  <th style={{ padding: "10px" }}>Img</th>
-                  <th style={{ padding: "10px" }}>Product</th>
-                  <th style={{ padding: "10px" }}>Price</th>
-                  <th style={{ padding: "10px" }}>Action</th>
+                  <th style={{ padding: "12px" }}>Image</th>
+                  <th style={{ padding: "12px" }}>Product</th>
+                  <th style={{ padding: "12px" }}>Price</th>
+                  <th style={{ padding: "12px" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
                   <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                    <td style={{ padding: "10px" }}><img src={p.image} style={{ width: "35px", height: "35px", borderRadius: "4px", objectFit: "cover" }} /></td>
-                    <td style={{ padding: "10px" }}>{p.name}</td>
-                    <td style={{ padding: "10px" }}>₹{p.price}</td>
                     <td style={{ padding: "10px" }}>
-                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#ff5252", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>Delete</button>
+                      {/* Image Fix: Added onError to handle broken links */}
+                      <img 
+                        src={p.image} 
+                        alt={p.name} 
+                        style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: "cover", display: "block", border: "1px solid #eee" }} 
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/50?text=No+Img"; }}
+                      />
+                    </td>
+                    <td style={{ padding: "12px" }}>
+                      <div style={{ fontWeight: "bold" }}>{p.name}</div>
+                      <div style={{ fontSize: "12px", color: "#666" }}>Unit: {p.unit || 'kg'}</div>
+                    </td>
+                    <td style={{ padding: "12px" }}>₹{p.price}</td>
+                    <td style={{ padding: "12px" }}>
+                      <button onClick={() => deleteProduct(p.id)} style={{ background: "#ff5252", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>Delete</button>
                     </td>
                   </tr>
                 ))}
