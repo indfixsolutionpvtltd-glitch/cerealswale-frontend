@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
+import { db } from "../../lib/firebase";
 import { ref, onValue, push, set, update, remove } from "firebase/database";
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, 
