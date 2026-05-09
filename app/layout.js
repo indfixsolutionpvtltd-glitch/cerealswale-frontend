@@ -1,21 +1,29 @@
-"use client"; // Client component banaya taaki localStorage read kar sake
+"use client"; 
 import React, { useState, useEffect } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ShoppingBag } from "lucide-react";
 
 export default function RootLayout({ children }) {
   const [cartCount, setCartCount] = useState(0);
+  const [userName, setUserName] = useState("");
 
-  // Cart count ko realtime update karne ke liye logic
   useEffect(() => {
-    const updateCount = () => {
+    const updateData = () => {
+      // 1. Cart Count Update
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const total = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
       setCartCount(total);
+
+      // 2. User Name Update (Login check)
+      const savedUser = JSON.parse(localStorage.getItem("user"));
+      if (savedUser) {
+        setUserName(savedUser.displayName || "User");
+      } else {
+        setUserName("");
+      }
     };
 
-    updateCount();
-    // Har 1 second mein check karega ki cart mein kuch add hua ya nahi
-    const interval = setInterval(updateCount, 1000);
+    updateData();
+    const interval = setInterval(updateData, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -37,19 +45,34 @@ export default function RootLayout({ children }) {
           <div style={{ display: "flex", gap: "15px", fontSize: "12px", fontWeight: "600", flexWrap: "wrap", alignItems: "center" }}>
             <a href="/" style={linkStyle}>HOME</a>
             <a href="/products" style={linkStyle}>PRODUCTS</a>
+            
+            {/* AGAR USER LOGIN HAI TO "MY ORDERS" DIKHEGA */}
+            {userName && (
+              <a href="/orders" style={{ color: "#166534", textDecoration: "none", fontSize: "12px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "5px" }}>
+                <ShoppingBag size={18} /> MY ORDERS
+              </a>
+            )}
+
             <a href="/contact" style={linkStyle}>CONTACT</a>
             
-            {/* --- NAYA CART ICON SECTION --- */}
+            {/* CART ICON WITH BADGE */}
             <a href="/checkout" style={{ position: "relative", display: "flex", alignItems: "center", color: "#2e7d32", textDecoration: "none" }}>
               <ShoppingCart size={24} />
               {cartCount > 0 && (
                 <span style={badgeStyle}>{cartCount}</span>
               )}
             </a>
-            {/* ---------------------------- */}
 
-            <a href="/login" style={{ color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "4px 10px", borderRadius: "4px" }}>LOGIN</a>
-            <a href="/register" style={{ background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "5px 12px", borderRadius: "4px" }}>REGISTER</a>
+            {/* Login/Register Buttons */}
+            {!userName ? (
+              <>
+                <a href="/login" style={{ color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "4px 10px", borderRadius: "4px" }}>LOGIN</a>
+                <a href="/register" style={{ background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "5px 12px", borderRadius: "4px" }}>REGISTER</a>
+              </>
+            ) : (
+              <span style={{ color: "#2e7d32", fontWeight: "bold" }}>Hi, {userName}</span>
+            )}
+            
             <a href="/admin" style={{ color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "4px 10px", borderRadius: "4px" }}>ADMIN</a>
           </div>
         </nav>
