@@ -4,30 +4,30 @@ import { ShoppingCart, ShoppingBag, User } from "lucide-react";
 
 export default function RootLayout({ children }) {
   const [cartCount, setCartCount] = useState(0);
-  const [userName, setUserName] = useState(null); // Pehle null rakhein
+  const [userName, setUserName] = useState(null); 
 
   useEffect(() => {
     const updateData = () => {
-      // 1. Cart Count Update
+      // 1. Cart Count Logic
       try {
         const cart = JSON.parse(localStorage.getItem("cart")) || [];
         const total = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
         setCartCount(total);
       } catch (e) { setCartCount(0); }
 
-      // 2. User Check
+      // 2. User Authentication Check
       try {
         const savedUser = JSON.parse(localStorage.getItem("user"));
         if (savedUser && (savedUser.displayName || savedUser.email)) {
           setUserName(savedUser.displayName || savedUser.email.split('@')[0]);
         } else {
-          setUserName(""); // Khali string matlab koi login nahi hai
+          setUserName(""); // Empty string means Logout state
         }
       } catch (e) { setUserName(""); }
     };
 
     updateData();
-    const interval = setInterval(updateData, 1500); // Thoda gap badhaya performance ke liye
+    const interval = setInterval(updateData, 1500);
     return () => clearInterval(interval);
   }, []);
 
@@ -50,21 +50,21 @@ export default function RootLayout({ children }) {
             <a href="/" style={linkStyle}>HOME</a>
             <a href="/products" style={linkStyle}>PRODUCTS</a>
             
-            {/* AGAR LOGIN HAI TO MY ORDERS DIKHEGA */}
+            {/* My Orders: Only visible when logged in */}
             {userName && (
               <a href="/orders" style={{ color: "#166534", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
                 <ShoppingBag size={16} /> MY ORDERS
               </a>
             )}
 
-            {/* CART ICON */}
+            {/* Cart Icon */}
             <a href="/checkout" style={{ position: "relative", display: "flex", alignItems: "center", color: "#2e7d32", textDecoration: "none" }}>
               <ShoppingCart size={22} />
               {cartCount > 0 && <span style={badgeStyle}>{cartCount}</span>}
             </a>
 
-            {/* LOGIN / USER SECTION */}
-            {userName === "" || userName === null ? (
+            {/* Auth Buttons: LOGIN/REGISTER visible if userName is empty */}
+            {(userName === "" || userName === null) ? (
               <div style={{ display: "flex", gap: "10px" }}>
                 <a href="/login" style={loginBtn}>LOGIN</a>
                 <a href="/register" style={regBtn}>REGISTER</a>
@@ -84,12 +84,23 @@ export default function RootLayout({ children }) {
   );
 }
 
-// --- Enhanced Styles ---
+// --- Styles Fixed for Vercel ---
 const linkStyle = { color: "#444", textDecoration: "none" };
 const loginBtn = { color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "5px 12px", borderRadius: "6px" };
 const regBtn = { background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "6px 14px", borderRadius: "6px" };
 const badgeStyle = {
-  position: "absolute", top: "-8px", right: "-10px", background: "#d32f2f", color: "white",
-  fontSize: "10px", width: "18px", height: "18px", borderRadius: "50%",
-  display: "flex", alignItems: "center", justify-content: "center", fontWeight: "bold", border: "2px solid white"
+  position: "absolute", 
+  top: "-8px", 
+  right: "-10px", 
+  background: "#d32f2f", 
+  color: "white",
+  fontSize: "10px", 
+  width: "18px", 
+  height: "18px", 
+  borderRadius: "50%",
+  display: "flex", 
+  alignItems: "center", 
+  justifyContent: "center", // Fixed: camelCase used here
+  fontWeight: "bold", 
+  border: "2px solid white"
 };
