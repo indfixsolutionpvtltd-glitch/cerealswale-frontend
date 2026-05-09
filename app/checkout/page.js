@@ -1,129 +1,127 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { ref, set, onValue } from "firebase/database";
-import { CheckCircle, MapPin, CreditCard, ArrowRight, ArrowLeft } from "lucide-react";
+import { ref, set, push } from "firebase/database";
+import { CreditCard, CheckCircle, Smartphone, Truck } from "lucide-react";
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
-  const [address, setAddress] = useState({ fullName: "", phone: "", houseNo: "" });
-  const [paymentStep, setPaymentStep] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("COD");
-  const [utrNumber, setUtrNumber] = useState("");
-  const [orderSuccess, setOrderSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderDone, setOrderDone] = useState(false);
+  const [utrNumber, setUtrNumber] = useState("");
 
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    if (savedCart.length === 0 && !orderSuccess) {
-      window.location.href = "/products";
-      return;
-    }
-    setCartItems(savedCart);
-    
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      onValue(ref(db, `users/${user.uid || 'guest'}/address`), (s) => {
-        if (s.exists()) setAddress(s.val());
-      });
-    }
-  }, [orderSuccess]);
+    const items = JSON.parse(localStorage.getItem("cart")) || [];
+    setCartItems(items);
+  }, []);
 
-  const totalAmount = cartItems.reduce((a, i) => a + (Number(i.salePrice || i.price) * i.quantity), 0);
+  const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-  const handleFinalOrder = async () => {
-    // SECURITY LOCK: Do baar click karne par bhi ek hi order banega
-    if (isProcessing) return;
-    
-    if (paymentMethod === "UPI" && utrNumber.length < 6) {
-      alert("Kripya valid UTR/Transaction ID bharein!");
-      return;
+  const handlePlaceOrder = async () => {
+    const user = JSON.parse(localStorage.getItem("cw_user"));
+    if (!user) return alert("Login zaroori hai!");
+
+    if (paymentMethod === "UPI" && !utrNumber) {
+      return alert("Kripya Transaction ID/UTR bharein!");
     }
 
-    setIsProcessing(true); // Button disable ho jayega
+    setIsProcessing(true);
 
-    // Unique Numerical ID
-    const orderId = "CW" + Math.floor(100000 + Math.random() * 900000);
-    const userEmail = JSON.parse(localStorage.getItem("user"))?.email || "Guest";
-
+    // Order Data Structure
     const orderData = {
-      orderId: orderId,
-      customerName: address.fullName,
-      customerEmail: userEmail,
+      userMobile: user.mobile,
+      userName: user.name,
+      address: user.address,
       productName: cartItems.map(i => i.name).join(", "),
       price: totalAmount,
+      quantity: cartItems.length,
       paymentMethod: paymentMethod,
-      transactionId: paymentMethod === "UPI" ? utrNumber : "COD-Order",
+      transactionId: paymentMethod === "UPI" ? utrNumber : "COD-ORDER",
       status: "Pending",
-      createdAt: new Date().toLocaleString('en-IN')
+      date: new Date().toISOString()
     };
 
     try {
-      // Database mein save karein
-      await set(ref(db, `orders/${orderId}`), orderData);
-      
-      // Cart saaf karein taaki loop na bane
-      localStorage.removeItem("cart");
-      
-      // Success state par jayein
-      setOrderSuccess(true);
-    } catch (e) {
-      alert("Order failed: " + e.message);
+      const ordersRef = ref(db, 'orders');
+      const newOrderRef = push(ordersRef); // Unique ID generate karega
+      await set(newOrderRef, orderData);
+
+      localStorage.removeItem("cart"); // Checkout ke baad cart saaf
+      setOrderDone(true);
+    } catch (error) {
+      alert("Error: " + error.message);
+    } finally {
       setIsProcessing(false);
     }
   };
 
-  if (orderSuccess) return (
+  if (orderDone) return (
     <div style={{ textAlign: "center", padding: "100px 20px" }}>
-      <CheckCircle size={80} color="#16a34a" style={{marginBottom:"20px"}}/>
-      <h1 style={{color:"#166534"}}>Order Successful!</h1>
-      <p style={{color:"#64748b"}}>Aapka order id #{Math.floor(Math.random()*999999)} process ho raha hai.</p>
+      <CheckCircle size={80} color="#10b981" />
+      <h2 style={{ color: "#1b5e20" }}>Order Successfully Placed! ✅</h2>
+      <p>Aapke orders "My Orders" section mein dikh jayenge.</p>
       <button onClick={() => window.location.href = "/orders"} style={btnStyle}>View My Orders</button>
     </div>
   );
 
   return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "40px 20px" }}>
-      {!paymentStep ? (
-        <div style={cardStyle}>
-          <h3 style={{display:"flex", alignItems:"center", gap:"10px", color:"#166534"}}><MapPin/> Shipping Address</h3>
-          <input style={inputStyle} value={address.fullName} onChange={(e)=>setAddress({...address, fullName:e.target.value})} placeholder="Full Name" />
-          <input style={inputStyle} value={address.phone} onChange={(e)=>setAddress({...address, phone:e.target.value})} placeholder="Phone Number" />
-          <textarea style={inputStyle} value={address.houseNo} onChange={(e)=>setAddress({...address, houseNo:e.target.value})} placeholder="Complete Address" rows="3" />
-          <button onClick={()=>setPaymentStep(true)} style={btnStyle}>Proceed to Payment <ArrowRight size={18}/></button>
+    <div style={{ padding: "40px 5%", background: "#f8fdf9", minHeight: "100vh" }}>
+      <h2 style={{ color: "#1b5e20" }}>Final Checkout</h2>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px" }}>
+        {/* Order Summary */}
+        <div style={sectionBox}>
+          <h3>Saaman ki List</h3>
+          {cartItems.map(item => (
+            <div key={item.id} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
+              <span>{item.name} (x{item.quantity})</span>
+              <b>₹{item.price}</b>
+            </div>
+          ))}
+          <hr />
+          <div style={{ fontSize: "20px", fontWeight: "bold", textAlign: "right" }}>Total: ₹{totalAmount}</div>
         </div>
-      ) : (
-        <div style={cardStyle}>
-          <button onClick={()=>setPaymentStep(false)} style={{border:"none", background:"none", cursor:"pointer", marginBottom:"15px", display:"flex", alignItems:"center", gap:"5px", color:"#64748b"}}><ArrowLeft size={16}/> Back</button>
-          <h3 style={{display:"flex", alignItems:"center", gap:"10px", color:"#166534"}}><CreditCard/> Total: ₹{totalAmount}</h3>
-          
-          <div style={{marginBottom:"20px"}}>
-             <label style={payOption(paymentMethod === "COD")}>
-                <input type="radio" name="pay" checked={paymentMethod === "COD"} onChange={()=>setPaymentMethod("COD")}/> Cash on Delivery (COD)
-             </label>
-             <label style={payOption(paymentMethod === "UPI")}>
-                <input type="radio" name="pay" checked={paymentMethod === "UPI"} onChange={()=>setPaymentMethod("UPI")}/> Pay Online (UPI/QR)
-             </label>
+
+        {/* Payment Method */}
+        <div style={sectionBox}>
+          <h3>Payment Mode Chunein</h3>
+          <div style={{ marginBottom: "20px" }}>
+            <label style={payOption}>
+              <input type="radio" checked={paymentMethod === "COD"} onChange={() => setPaymentMethod("COD")} />
+              <Truck size={20} /> Cash on Delivery (COD)
+            </label>
+            <label style={payOption}>
+              <input type="radio" checked={paymentMethod === "UPI"} onChange={() => setPaymentMethod("UPI")} />
+              <Smartphone size={20} /> Pay via UPI (QR Scan)
+            </label>
           </div>
 
           {paymentMethod === "UPI" && (
-            <div style={{textAlign:"center", background:"#f8fafc", padding:"15px", borderRadius:"12px", marginBottom:"15px"}}>
-              <p style={{fontSize:"12px", marginBottom:"10px"}}>Scan & Pay using any UPI App</p>
-              <img src="/scan-qr.jpeg" style={{width:"200px", borderRadius:"10px", marginBottom:"10px"}} />
-              <input style={inputStyle} placeholder="Enter 12-digit UTR/Transaction ID" onChange={(e)=>setUtrNumber(e.target.value)} />
+            <div style={upiBox}>
+              <p>Niche diye gaye QR ko scan karke ₹{totalAmount} pay karein</p>
+              <img src="/qr-code.png" alt="Payment QR" style={{ width: "200px", margin: "10px 0" }} />
+              <input 
+                type="text" 
+                placeholder="Transaction ID / UTR Number" 
+                style={inputStyle} 
+                onChange={(e) => setUtrNumber(e.target.value)}
+              />
             </div>
           )}
 
-          <button onClick={handleFinalOrder} disabled={isProcessing} style={btnStyle}>
-            {isProcessing ? "Placing Order..." : "Confirm Order"}
+          <button onClick={handlePlaceOrder} disabled={isProcessing} style={btnStyle}>
+            {isProcessing ? "Processing..." : "Place Order Now"}
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-const cardStyle = { background: "#fff", padding: "30px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" };
-const inputStyle = { width: "100%", padding: "12px", marginBottom: "15px", borderRadius: "10px", border: "1px solid #e2e8f0", boxSizing:"border-box", fontSize:"14px" };
-const btnStyle = { width: "100%", padding: "15px", background: "#166534", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"10px" };
-const payOption = (active) => ({ display: "flex", alignItems: "center", gap: "10px", padding: "15px", border: active ? "2px solid #16a34a" : "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "10px", cursor: "pointer", fontSize:"14px", background: active ? "#f0fdf4" : "#fff" });
+// Styles
+const sectionBox = { background: "white", padding: "30px", borderRadius: "20px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" };
+const payOption = { display: "flex", alignItems: "center", gap: "10px", padding: "15px", border: "1px solid #eee", borderRadius: "10px", cursor: "pointer", marginBottom: "10px" };
+const upiBox = { background: "#f0fdf4", padding: "20px", borderRadius: "10px", textAlign: "center", marginBottom: "15px" };
+const inputStyle = { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ddd", boxSizing: "border-box" };
+const btnStyle = { width: "100%", padding: "15px", background: "#1b5e20", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "16px" };
