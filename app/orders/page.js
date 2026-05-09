@@ -1,76 +1,90 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { ref, onValue, off } from "firebase/database";
-import { ShoppingBag, CreditCard, Calendar, Hash } from "lucide-react";
+import { ref, onValue } from "firebase/database";
+import { Package, Clock, Truck, CheckCircle } from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const email = user?.email || "Guest";
-    const ordersRef = ref(db, 'orders');
+    const savedUser = JSON.parse(localStorage.getItem("cw_user"));
+    if (!savedUser) {
+      window.location.href = "/login";
+      return;
+    }
 
+    const ordersRef = ref(db, 'orders');
     onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list = Object.keys(data)
+        // Sirf is user ke orders filter karein (Mobile number ke basis par)
+        const userOrders = Object.keys(data)
           .map(key => ({ id: key, ...data[key] }))
-          .filter(o => 
-            o.customerEmail === email && 
-            o.orderId && // Sirf wahi dikhao jisme numerical ID ho
-            o.createdAt && // Sirf wahi jisme Date ho
-            o.createdAt !== "Processing..." // Kachra data filter karein
-          );
+          .filter(order => order.userMobile === savedUser.mobile);
         
-        setOrders(list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-      } else {
-        setOrders([]);
+        setOrders(userOrders.sort((a, b) => new Date(b.date) - new Date(a.date)));
       }
       setLoading(false);
     });
-
-    return () => off(ordersRef);
   }, []);
 
-  if (loading) return <div style={{textAlign:"center", padding:"100px", color:"#166534"}}>Loading...</div>;
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Pending": return <Clock size={16} color="#f59e0b" />;
+      case "Processing": return <Loader2 size={16} color="#3b82f6" className="animate-spin" />;
+      case "Shipped": return <Truck size={16} color="#8b5cf6" />;
+      case "Delivered": return <CheckCircle size={16} color="#10b981" />;
+      default: return <Clock size={16} />;
+    }
+  };
+
+  if (loading) return <div style={{ textAlign: "center", padding: "100px" }}>Orders load ho rahe hain...</div>;
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px", fontFamily: "sans-serif" }}>
-      <h2 style={{ textAlign: "center", color: "#166534", marginBottom: "30px", display:"flex", alignItems:"center", justifyContent:"center", gap:"10px" }}>
-        <ShoppingBag /> Mere Orders
+    <div style={{ padding: "40px 5%", background: "#f8fdf9", minHeight: "100vh" }}>
+      <h2 style={{ color: "#1b5e20", display: "flex", alignItems: "center", gap: "10px" }}>
+        <Package color="#1b5e20" /> Mere Orders
       </h2>
-      
-      {orders.length === 0 ? (
-        <div style={{textAlign:"center", padding:"50px", background:"#f8fafc", borderRadius:"20px", border:"2px dashed #e2e8f0"}}>
-           <p style={{color:"#64748b"}}>Abhi tak koi valid order nahi mila hai.</p>
-           <button onClick={() => window.location.href = "/products"} style={{background:"#16a34a", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer", marginTop:"15px"}}>Start Shopping</button>
-        </div>
-      ) : (
-        orders.map((o) => (
-          <div key={o.id} style={{ background:"#fff", padding:"25px", borderRadius:"15px", boxShadow:"0 4px 20px rgba(0,0,0,0.05)", marginBottom:"20px", borderLeft:"6px solid #16a34a" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-              <div style={{flex:1}}>
-                <h3 style={{ margin:"0 0 10px 0", color:"#334155", fontSize:"18px", fontWeight:"700" }}>{o.productName}</h3>
-                <div style={{ display:"flex", flexDirection:"column", gap:"5px", fontSize:"12px", color:"#64748b" }}>
-                  <span><Hash size={14} style={{verticalAlign:"middle"}}/> <b>ID:</b> {o.orderId}</span>
-                  <span><Calendar size={14} style={{verticalAlign:"middle"}}/> <b>Date:</b> {o.createdAt}</span>
+
+      <div style={{ marginTop: "30px" }}>
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <div key={order.id} style={orderCardStyle}>
+              <div style={orderHeader}>
+                <div>
+                  <span style={{ fontSize: "12px", color: "#666" }}>Order ID: #{order.id.slice(-6)}</span>
+                  <h4 style={{ margin: "5px 0" }}>{order.productName}</h4>
+                </div>
+                <div style={statusBadge(order.status)}>
+                  {getStatusIcon(order.status)} {order.status}
                 </div>
               </div>
-              <div style={{textAlign:"right"}}>
-                <h2 style={{ margin:0, color:"#16a34a", fontSize:"22px" }}>₹{o.price}</h2>
-                <span style={{ fontSize:"11px", background:"#fef3c7", padding:"3px 10px", borderRadius:"20px", fontWeight:"bold", color:"#92400e" }}>{o.status}</span>
+              <div style={orderFooter}>
+                <span>Quantity: <b>{order.quantity}</b></span>
+                <span>Total: <b style={{ color: "#1b5e20" }}>₹{order.price}</b></span>
+                <span>Date: {new Date(order.date).toLocaleDateString()}</span>
               </div>
             </div>
-            <div style={{ marginTop:"15px", paddingTop:"15px", borderTop:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:"12px", color:"#64748b" }}>
-              <span><b>Payment:</b> {o.paymentMethod} | <b>UTR:</b> {o.transactionId}</span>
-              <button onClick={() => window.location.href = "/checkout"} style={{ background:"#166534", color:"white", border:"none", padding:"6px 12px", borderRadius:"6px", cursor:"pointer" }}>Pay Now</button>
-            </div>
+          ))
+        ) : (
+          <div style={{ textAlign: "center", padding: "50px", background: "white", borderRadius: "15px" }}>
+            <p>Aapne abhi tak koi order nahi kiya hai.</p>
+            <a href="/products" style={{ color: "#43a047", fontWeight: "bold" }}>Shopping shuru karein</a>
           </div>
-        ))
-      )}
+        )}
+      </div>
     </div>
   );
 }
+
+// Styles
+const orderCardStyle = { background: "white", padding: "20px", borderRadius: "15px", marginBottom: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #eee" };
+const orderHeader = { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0", paddingBottom: "10px" };
+const orderFooter = { display: "flex", justifyContent: "space-between", marginTop: "15px", fontSize: "14px", color: "#444" };
+const statusBadge = (status) => ({
+  display: "flex", alignItems: "center", gap: "5px", padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold",
+  background: status === "Delivered" ? "#dcfce7" : status === "Pending" ? "#fef3c7" : "#eff6ff",
+  color: status === "Delivered" ? "#166534" : status === "Pending" ? "#92400e" : "#1e40af"
+});
