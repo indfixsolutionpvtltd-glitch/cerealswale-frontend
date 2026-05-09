@@ -63,15 +63,16 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     const orderId = "CW" + Math.floor(100000 + Math.random() * 900000);
     const orderData = {
-      orderId: orderId,
-      customerName: address.fullName,
-      customerEmail: JSON.parse(localStorage.getItem("user"))?.email || "Guest User",
-      productName: cartItems.map(i => i.name).join(", "), 
-      price: totalAmount,
-      paymentMethod: paymentMethod,
-      transactionId: paymentMethod === "UPI" ? utrNumber : "COD-Order",
-      status: "Pending",
-      createdAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+      const orderData = {
+  orderId: orderId,
+  customerName: address.fullName,
+  customerEmail: JSON.parse(localStorage.getItem("user"))?.email || "Guest",
+  productName: cartItems.map(i => i.name).join(", "), 
+  price: totalAmount,
+  paymentMethod: paymentMethod,
+  transactionId: paymentMethod === "UPI" ? utrNumber : "COD-Order",
+  status: "Pending",
+  createdAt: new Date().toISOString() // Standard format for easy filtering
     };
 
     try {
