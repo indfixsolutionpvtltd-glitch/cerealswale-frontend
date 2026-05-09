@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Package, Clock, CheckCircle } from "lucide-react";
+import { Package, Clock, CheckCircle, CreditCard } from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -23,6 +23,18 @@ export default function OrdersPage() {
       setLoading(false);
     });
   }, []);
+
+  // --- Naya Function: Order ko wapas Cart mein daalne ke liye ---
+  const handleReorder = (order) => {
+    const cartItem = {
+      id: order.id,
+      name: order.productName,
+      price: order.price,
+      quantity: 1, // Default 1
+    };
+    localStorage.setItem("cart", JSON.stringify([cartItem]));
+    window.location.href = "/checkout"; // Seedha Checkout par bhejein
+  };
 
   if (loading) return <div style={{ textAlign: "center", padding: "100px" }}>Order loading ho rahe hain...</div>;
 
@@ -47,8 +59,19 @@ export default function OrdersPage() {
                 </span>
               </div>
             </div>
-            <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #f1f5f9", fontSize: "13px", color: "#64748b" }}>
-              <b>Payment:</b> {o.paymentMethod} | <b>UTR:</b> {o.transactionId}
+            
+            <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "13px", color: "#64748b" }}>
+                <b>Payment:</b> {o.paymentMethod} | <b>UTR:</b> {o.transactionId}
+              </div>
+              
+              {/* PAY NOW / RE-ORDER BUTTON */}
+              <button 
+                onClick={() => handleReorder(o)}
+                style={{ background: "#166534", color: "white", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: "bold", fontSize: "12px" }}
+              >
+                <CreditCard size={14} /> Pay Now / Re-order
+              </button>
             </div>
           </div>
         ))
