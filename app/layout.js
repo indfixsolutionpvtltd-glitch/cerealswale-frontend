@@ -1,11 +1,24 @@
-import React from 'react';
-
-export const metadata = {
-  title: 'Cerealswale | Smart Agriculture Solutions',
-  description: 'Empowering farmers with high-quality seeds',
-};
+"use client"; // Client component banaya taaki localStorage read kar sake
+import React, { useState, useEffect } from "react";
+import { ShoppingCart } from "lucide-react";
 
 export default function RootLayout({ children }) {
+  const [cartCount, setCartCount] = useState(0);
+
+  // Cart count ko realtime update karne ke liye logic
+  useEffect(() => {
+    const updateCount = () => {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const total = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+      setCartCount(total);
+    };
+
+    updateCount();
+    // Har 1 second mein check karega ki cart mein kuch add hua ya nahi
+    const interval = setInterval(updateCount, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'Arial, sans-serif' }}>
@@ -21,20 +34,23 @@ export default function RootLayout({ children }) {
           </div>
 
           {/* Links Section */}
-          <div style={{ display: "flex", gap: "12px", fontSize: "12px", fontWeight: "600", flexWrap: "wrap", padding: "10px 0" }}>
-            <a href="/" style={{ color: "#333", textDecoration: "none" }}>HOME</a>
-            <a href="/company" style={{ color: "#333", textDecoration: "none" }}>COMPANY</a>
-            <a href="/solutions" style={{ color: "#333", textDecoration: "none" }}>SOLUTIONS</a>
-            <a href="/products" style={{ color: "#333", textDecoration: "none" }}>PRODUCTS</a>
-            <a href="/network" style={{ color: "#333", textDecoration: "none" }}>NETWORK</a>
-            <a href="/careers" style={{ color: "#333", textDecoration: "none" }}>CAREERS</a>
-            <a href="/contact" style={{ color: "#333", textDecoration: "none" }}>CONTACT US</a>
+          <div style={{ display: "flex", gap: "15px", fontSize: "12px", fontWeight: "600", flexWrap: "wrap", alignItems: "center" }}>
+            <a href="/" style={linkStyle}>HOME</a>
+            <a href="/products" style={linkStyle}>PRODUCTS</a>
+            <a href="/contact" style={linkStyle}>CONTACT</a>
             
-            {/* Login & Register Links (Ab yahan dikhenge) */}
-            <a href="/login" style={{ color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "2px 8px", borderRadius: "4px" }}>LOGIN</a>
-            <a href="/register" style={{ background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "3px 10px", borderRadius: "4px" }}>REGISTER</a>
-            
-            <a href="/admin" style={{ color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "2px 8px", borderRadius: "4px" }}>ADMIN</a>
+            {/* --- NAYA CART ICON SECTION --- */}
+            <a href="/checkout" style={{ position: "relative", display: "flex", alignItems: "center", color: "#2e7d32", textDecoration: "none" }}>
+              <ShoppingCart size={24} />
+              {cartCount > 0 && (
+                <span style={badgeStyle}>{cartCount}</span>
+              )}
+            </a>
+            {/* ---------------------------- */}
+
+            <a href="/login" style={{ color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "4px 10px", borderRadius: "4px" }}>LOGIN</a>
+            <a href="/register" style={{ background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "5px 12px", borderRadius: "4px" }}>REGISTER</a>
+            <a href="/admin" style={{ color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "4px 10px", borderRadius: "4px" }}>ADMIN</a>
           </div>
         </nav>
         {children}
@@ -42,3 +58,22 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+// Inline Styles
+const linkStyle = { color: "#333", textDecoration: "none" };
+const badgeStyle = {
+  position: "absolute",
+  top: "-8px",
+  right: "-10px",
+  background: "#d32f2f",
+  color: "white",
+  fontSize: "10px",
+  width: "18px",
+  height: "18px",
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: "bold",
+  border: "2px solid white"
+};
