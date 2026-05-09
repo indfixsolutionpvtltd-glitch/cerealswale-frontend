@@ -2,25 +2,22 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue, set, push, update, remove } from "firebase/database";
-import { ShoppingBag, Package, PlusCircle, Trash2, Edit, Save, X, Image as ImageIcon } from "lucide-react";
+import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut } from "lucide-react";
 
 export default function AdminDashboard() {
-  // States for Inventory
+  // --- AUTH STATES ---
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [adminPass, setAdminPass] = useState("");
+  const SECRET_ADMIN_PASSWORD = "ADMIN@2026"; // 👈 Aapka Password
+
+  // --- INVENTORY STATES ---
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
 
   // Form State for New Product
   const [newProduct, setNewProduct] = useState({
-    name: "",
-    category: "Rice",
-    quantity: "1 KG",
-    unitType: "Weight", // Weight, Liquid, Packet
-    price: "",
-    stock: "",
-    image: "",
-    description: "",
-    inStock: true
+    name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true
   });
 
   const quantityOptions = ["250 GM", "500 GM", "1 KG", "5 KG", "10 KG", "25 KG", "50 KG"];
@@ -28,6 +25,10 @@ export default function AdminDashboard() {
   const packetOptions = ["1 pc", "2 pc", "6 pc", "12 pc"];
 
   useEffect(() => {
+    // Check if admin is already logged in for this session
+    const authStatus = sessionStorage.getItem("admin_authenticated");
+    if (authStatus === "true") setIsAdminLoggedIn(true);
+
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
@@ -39,10 +40,26 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  // --- Handlers ---
+  // --- AUTH HANDLERS ---
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (adminPass === SECRET_ADMIN_PASSWORD) {
+      setIsAdminLoggedIn(true);
+      sessionStorage.setItem("admin_authenticated", "true");
+    } else {
+      alert("Galat Password! ❌");
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin_authenticated");
+    setIsAdminLoggedIn(false);
+    window.location.reload();
+  };
+
+  // --- INVENTORY HANDLERS ---
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) return alert("Pehle Name aur Price bharein!");
-    
     try {
       const productsRef = ref(db, 'products');
       const newProdRef = push(productsRef);
@@ -63,54 +80,77 @@ export default function AdminDashboard() {
     update(ref(db, `products/${id}`), { inStock: !currentStatus });
   };
 
-  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading Admin Panel...</div>;
+  // --- 1. LOGIN SCREEN UI ---
+  if (!isAdminLoggedIn) {
+    return (
+      <div style={loginOverlay}>
+        <div style={loginCard}>
+          <ShieldCheck size={50} color="#1b5e20" style={{marginBottom:"10px"}} />
+          <h2 style={{color: "#1b5e20", margin:"0 0 20px 0"}}>Admin Access</h2>
+          <form onSubmit={handleLogin} style={{width:"100%"}}>
+            <div style={loginInputGroup}>
+              <Lock size={18} color="#666" />
+              <input 
+                type="password" 
+                placeholder="Admin Password" 
+                style={loginInput}
+                value={adminPass}
+                onChange={(e) => setAdminPass(e.target.value)}
+              />
+            </div>
+            <button type="submit" style={loginBtn}>Unlock Dashboard</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // --- 2. MAIN DASHBOARD UI ---
+  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading...</div>;
 
   return (
     <div style={{ background: "#f4f7f6", minHeight: "100vh", padding: "30px 5%", fontFamily: "sans-serif" }}>
-      
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ CerealsWale Inventory</h1>
-        <button onClick={() => setIsAdding(!isAdding)} style={isAdding ? cancelBtn : addBtn}>
-          {isAdding ? <><X size={18}/> Cancel</> : <><PlusCircle size={18}/> Add New Product</>}
-        </button>
+        <div style={{display:"flex", gap:"10px"}}>
+          <button onClick={() => setIsAdding(!isAdding)} style={isAdding ? cancelBtn : addBtn}>
+            {isAdding ? <><X size={18}/> Cancel</> : <><PlusCircle size={18}/> Add Product</>}
+          </button>
+          <button onClick={handleLogout} style={logoutBtn}><LogOut size={16}/> Logout</button>
+        </div>
       </div>
 
-      {/* --- ADD PRODUCT FORM --- */}
       {isAdding && (
         <div style={formCard}>
           <h3 style={{marginTop:0, color:"#1b5e20"}}>Upload Product Details</h3>
           <div style={gridForm}>
-            <input placeholder="Product Name (e.g. Basmati Rice)" style={inputStyle} value={newProduct.name} onChange={(e)=>setNewProduct({...newProduct, name:e.target.value})} />
-            
+            <input placeholder="Product Name" style={inputStyle} value={newProduct.name} onChange={(e)=>setNewProduct({...newProduct, name:e.target.value})} />
             <select style={inputStyle} value={newProduct.unitType} onChange={(e)=>setNewProduct({...newProduct, unitType:e.target.value, quantity: e.target.value === "Weight" ? "1 KG" : e.target.value === "Liquid" ? "1 Litre" : "1 pc"})}>
               <option value="Weight">Weight (GM/KG)</option>
               <option value="Liquid">Liquid (Litre)</option>
               <option value="Packet">Packet (pcs)</option>
             </select>
-
             <select style={inputStyle} value={newProduct.quantity} onChange={(e)=>setNewProduct({...newProduct, quantity:e.target.value})}>
               {newProduct.unitType === "Weight" && quantityOptions.map(q => <option key={q} value={q}>{q}</option>)}
               {newProduct.unitType === "Liquid" && liquidOptions.map(q => <option key={q} value={q}>{q}</option>)}
               {newProduct.unitType === "Packet" && packetOptions.map(q => <option key={q} value={q}>{q}</option>)}
             </select>
-
             <input placeholder="Price (₹)" type="number" style={inputStyle} value={newProduct.price} onChange={(e)=>setNewProduct({...newProduct, price:e.target.value})} />
             <input placeholder="Stock Quantity" type="number" style={inputStyle} value={newProduct.stock} onChange={(e)=>setNewProduct({...newProduct, stock:e.target.value})} />
-            <input placeholder="Image URL (e.g. /products/rice.jpg)" style={inputStyle} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
+            <input placeholder="Image URL" style={inputStyle} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
           </div>
-          <textarea placeholder="Product Description..." style={{...inputStyle, height:"80px", marginTop:"15px"}} value={newProduct.description} onChange={(e)=>setNewProduct({...newProduct, description:e.target.value})} />
-          <button onClick={handleAddProduct} style={saveBtn}>Upload Product to Store</button>
+          <textarea placeholder="Description..." style={{...inputStyle, height:"80px", marginTop:"15px"}} value={newProduct.description} onChange={(e)=>setNewProduct({...newProduct, description:e.target.value})} />
+          <button onClick={handleAddProduct} style={saveBtn}>Save Product</button>
         </div>
       )}
 
-      {/* --- PRODUCT LISTING TABLE --- */}
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1b5e20", color: "white", textAlign: "left" }}>
               <th style={thStyle}>Image</th>
-              <th style={thStyle}>Product Name</th>
-              <th style={thStyle}>Quantity/Unit</th>
+              <th style={thStyle}>Name</th>
+              <th style={thStyle}>Qty</th>
               <th style={thStyle}>Price</th>
               <th style={thStyle}>Stock</th>
               <th style={thStyle}>Status</th>
@@ -124,7 +164,7 @@ export default function AdminDashboard() {
                 <td style={tdStyle}><b>{p.name}</b></td>
                 <td style={tdStyle}><span style={unitTag}>{p.quantity}</span></td>
                 <td style={tdStyle}>₹{p.price}</td>
-                <td style={tdStyle}>{p.stock} units</td>
+                <td style={tdStyle}>{p.stock}</td>
                 <td style={tdStyle}>
                   <button onClick={() => toggleStock(p.id, p.inStock)} style={p.inStock ? stockIn : stockOut}>
                     {p.inStock ? "In Stock" : "Out of Stock"}
@@ -142,9 +182,16 @@ export default function AdminDashboard() {
   );
 }
 
-// --- Styles ---
+// --- STYLES ---
+const loginOverlay = { height:"100vh", width:"100%", display:"flex", justifyContent:"center", alignItems:"center", background:"#f0fdf4" };
+const loginCard = { background:"white", padding:"40px", borderRadius:"20px", boxShadow:"0 10px 30px rgba(0,0,0,0.1)", textAlign:"center", width:"350px" };
+const loginInputGroup = { display:"flex", alignItems:"center", gap:"10px", background:"#f9f9f9", padding:"12px", borderRadius:"10px", border:"1px solid #ddd", marginBottom:"15px" };
+const loginInput = { border:"none", background:"none", outline:"none", width:"100%", fontSize:"16px" };
+const loginBtn = { width:"100%", padding:"12px", background:"#1b5e20", color:"white", border:"none", borderRadius:"10px", cursor:"pointer", fontWeight:"bold" };
+const logoutBtn = { background:"#ffebee", color:"#d32f2f", border:"none", padding:"8px 15px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", gap:"5px", fontWeight:"bold" };
+
 const formCard = { background:"white", padding:"25px", borderRadius:"15px", boxShadow:"0 10px 25px rgba(0,0,0,0.05)", marginBottom:"30px" };
-const gridForm = { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:"15px" };
+const gridForm = { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:"15px" };
 const inputStyle = { width:"100%", padding:"12px", borderRadius:"8px", border:"1px solid #ddd", fontSize:"14px", boxSizing:"border-box" };
 const addBtn = { background:"#1b5e20", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", gap:"8px", fontWeight:"bold" };
 const cancelBtn = { background:"#d32f2f", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", gap:"8px" };
