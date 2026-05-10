@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, set, push } from "firebase/database";
-import { CreditCard, CheckCircle, Smartphone, Truck } from "lucide-react";
+import { CreditCard, CheckCircle, Smartphone, Truck, ExternalLink } from "lucide-react";
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
@@ -18,6 +18,10 @@ export default function CheckoutPage() {
 
   const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  // Smart UPI Intent Link (Mobile Apps ke liye)
+  const upiId = "cerealswale@ptyes";
+  const upiUrl = `upi://pay?pa=${upiId}&pn=CerealsWale&am=${totalAmount}&cu=INR`;
+
   const handlePlaceOrder = async () => {
     const user = JSON.parse(localStorage.getItem("cw_user"));
     if (!user) return alert("Login zaroori hai!");
@@ -28,7 +32,6 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
 
-    // Order Data Structure
     const orderData = {
       userMobile: user.mobile,
       userName: user.name,
@@ -44,10 +47,9 @@ export default function CheckoutPage() {
 
     try {
       const ordersRef = ref(db, 'orders');
-      const newOrderRef = push(ordersRef); // Unique ID generate karega
+      const newOrderRef = push(ordersRef);
       await set(newOrderRef, orderData);
-
-      localStorage.removeItem("cart"); // Checkout ke baad cart saaf
+      localStorage.removeItem("cart");
       setOrderDone(true);
     } catch (error) {
       alert("Error: " + error.message);
@@ -69,7 +71,7 @@ export default function CheckoutPage() {
     <div style={{ padding: "40px 5%", background: "#f8fdf9", minHeight: "100vh" }}>
       <h2 style={{ color: "#1b5e20" }}>Final Checkout</h2>
       
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
         {/* Order Summary */}
         <div style={sectionBox}>
           <h3>Saaman ki List</h3>
@@ -93,20 +95,32 @@ export default function CheckoutPage() {
             </label>
             <label style={payOption}>
               <input type="radio" checked={paymentMethod === "UPI"} onChange={() => setPaymentMethod("UPI")} />
-              <Smartphone size={20} /> Pay via UPI (QR Scan)
+              <Smartphone size={20} /> Pay via UPI (Scan or App)
             </label>
           </div>
 
           {paymentMethod === "UPI" && (
             <div style={upiBox}>
-              <p>Niche diye gaye QR ko scan karke ₹{totalAmount} pay karein</p>
-              <img src="/qr-code.png" alt="Payment QR" style={{ width: "200px", margin: "10px 0" }} />
-              <input 
-                type="text" 
-                placeholder="Transaction ID / UTR Number" 
-                style={inputStyle} 
-                onChange={(e) => setUtrNumber(e.target.value)}
-              />
+              <p style={{ fontWeight: "bold", color: "#1b5e20" }}>Payment Karein</p>
+              
+              {/* Smart App Link (Only works on Mobile) */}
+              <a href={upiUrl} style={smartPayBtn}>
+                <ExternalLink size={18} /> Open UPI App (PhonePe/GPay)
+              </a>
+
+              <p style={{ margin: "15px 0", fontSize: "12px", color: "#666" }}>या niche diye QR ko scan karein:</p>
+              
+              <img src="/qr-code.png" alt="Payment QR" style={{ width: "180px", border: "5px solid white", borderRadius: "10px" }} />
+              
+              <div style={{ marginTop: "15px" }}>
+                <input 
+                  type="text" 
+                  placeholder="Transaction ID / UTR Number" 
+                  style={inputStyle} 
+                  onChange={(e) => setUtrNumber(e.target.value)}
+                />
+                <p style={{ fontSize: "10px", color: "#666", marginTop: "5px" }}>*Payment ke baad Transaction ID bharna zaroori hai.</p>
+              </div>
             </div>
           )}
 
@@ -122,6 +136,7 @@ export default function CheckoutPage() {
 // Styles
 const sectionBox = { background: "white", padding: "30px", borderRadius: "20px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" };
 const payOption = { display: "flex", alignItems: "center", gap: "10px", padding: "15px", border: "1px solid #eee", borderRadius: "10px", cursor: "pointer", marginBottom: "10px" };
-const upiBox = { background: "#f0fdf4", padding: "20px", borderRadius: "10px", textAlign: "center", marginBottom: "15px" };
-const inputStyle = { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ddd", boxSizing: "border-box" };
+const upiBox = { background: "#f0fdf4", padding: "20px", borderRadius: "15px", textAlign: "center", marginBottom: "15px", border: "1px dashed #43a047" };
+const inputStyle = { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ddd", boxSizing: "border-box", textAlign: "center" };
 const btnStyle = { width: "100%", padding: "15px", background: "#1b5e20", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "16px" };
+const smartPayBtn = { display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#43a047", color: "white", padding: "12px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "14px", marginBottom: "10px" };
