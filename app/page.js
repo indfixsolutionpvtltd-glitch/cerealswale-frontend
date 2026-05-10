@@ -1,4 +1,14 @@
 "use client";
+import React from "react";
+import { 
+  LayoutDashboard, 
+  Building2, 
+  Globe2, 
+  Lightbulb, 
+  Briefcase, 
+  Mail, 
+  ArrowRight 
+} from "lucide-react";
 
 export default function Home() {
   return (
@@ -25,7 +35,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Company Section (Agrizone Style) */}
+      {/* --- STEP 4: QUICK NAVIGATION GRID (Surgically Added) --- */}
+      <section style={{ padding: "40px 20px", background: "#f0fdf4" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "20px" }}>
+            <NavCard title="Dashboard" icon={<LayoutDashboard size={24}/>} link="/dashboard" color="#1b5e20" />
+            <NavCard title="Company" icon={<Building2 size={24}/>} link="/company" color="#2e7d32" />
+            <NavCard title="Network" icon={<Globe2 size={24}/>} link="/network" color="#388e3c" />
+            <NavCard title="Solutions" icon={<Lightbulb size={24}/>} link="/solutions" color="#43a047" />
+            <NavCard title="Careers" icon={<Briefcase size={24}/>} link="/careers" color="#4caf50" />
+            <NavCard title="Contact" icon={<Mail size={24}/>} link="/contact" color="#66bb6a" />
+          </div>
+        </div>
+      </section>
+
+      {/* Company Section */}
       <section style={{ padding: "60px 20px", maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "center" }}>
           <div>
@@ -57,6 +81,31 @@ export default function Home() {
         </div>
       </section>
     </div>
+  );
+}
+
+// --- Navigation Card Component ---
+function NavCard({ title, icon, link, color }) {
+  return (
+    <a href={link} style={{
+      textDecoration: "none",
+      background: "white",
+      padding: "20px",
+      borderRadius: "15px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "10px",
+      boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+      transition: "transform 0.2s",
+      borderBottom: `4px solid ${color}`
+    }}
+    onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-5px)"}
+    onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+    >
+      <div style={{ color: color }}>{icon}</div>
+      <span style={{ fontWeight: "bold", color: "#333", fontSize: "14px" }}>{title}</span>
+    </a>
   );
 }
 
