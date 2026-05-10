@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
   };
 
   // WhatsApp Config
-  const whatsappNumber = "8398975653";
+  const whatsappNumber = "918398975653";
   const message = "Hello CerealsWale, mujhe products ke baare mein jankari chahiye.";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
