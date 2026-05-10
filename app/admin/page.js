@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue, set, push, update, remove } from "firebase/database";
-import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Filter } from "lucide-react";
+import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Truck, CheckCircle, Ban } from "lucide-react";
 
 export default function AdminDashboard() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -10,10 +10,11 @@ export default function AdminDashboard() {
   const SECRET_ADMIN_PASSWORD = "Ram@123"; 
 
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]); // 👈 Naya state orders ke liye
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [filterLowStock, setFilterLowStock] = useState(false); // 👈 Low Stock filter state
+  const [filterLowStock, setFilterLowStock] = useState(false);
 
   const [newProduct, setNewProduct] = useState({
     name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
     const authStatus = sessionStorage.getItem("admin_authenticated");
     if (authStatus === "true") setIsAdminLoggedIn(true);
 
+    // Fetch Products
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
@@ -34,11 +36,20 @@ export default function AdminDashboard() {
         const prodList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
         setProducts(prodList);
       }
+    });
+
+    // Fetch Orders (Naya Logic)
+    const ordersRef = ref(db, 'orders');
+    onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const orderList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setOrders(orderList.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      }
       setLoading(false);
     });
   }, []);
 
-  // --- Calculations for Alerts ---
   const lowStockItems = products.filter(p => Number(p.stock) < 10);
   const displayedProducts = filterLowStock ? lowStockItems : products;
 
@@ -56,6 +67,19 @@ export default function AdminDashboard() {
     window.location.reload();
   };
 
+  // --- ORDER MANAGEMENT LOGIC ---
+  const updateOrderStatus = (orderId, newStatus) => {
+    update(ref(db, `orders/${orderId}`), { status: newStatus });
+    alert(`Order ${newStatus} ho gaya! ✅`);
+  };
+
+  const rejectOrder = (orderId) => {
+    if (window.confirm("Kya aap is order ko reject/delete karna chahte hain?")) {
+      remove(ref(db, `orders/${orderId}`));
+    }
+  };
+
+  // --- INVENTORY LOGIC (RETAINED) ---
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) return alert("Details bharein!");
     try {
@@ -110,37 +134,30 @@ export default function AdminDashboard() {
     );
   }
 
-  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading...</div>;
+  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading Admin Panel...</div>;
 
   return (
     <div style={{ background: "#f4f7f6", minHeight: "100vh", padding: "30px 5%" }}>
       <div style={headerSection}>
-        <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Inventory Control</h1>
+        <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Admin Control Center</h1>
         <div style={{display:"flex", gap:"10px"}}>
-          <button 
-            onClick={() => setFilterLowStock(!filterLowStock)} 
-            style={{...filterBtn, background: filterLowStock ? "#d32f2f" : "#fff"}}
-          >
+          <button onClick={() => setFilterLowStock(!filterLowStock)} style={{...filterBtn, background: filterLowStock ? "#d32f2f" : "#fff"}}>
             <AlertTriangle size={16} color={filterLowStock ? "#fff" : "#d32f2f"} />
             {filterLowStock ? "Show All" : `Low Stock (${lowStockItems.length})`}
           </button>
           <button onClick={() => { setIsAdding(!isAdding); setEditId(null); }} style={isAdding ? cancelBtn : addBtn}>
-            {isAdding ? "Cancel" : "+ Add New"}
+            {isAdding ? "Cancel" : "+ Add New Product"}
           </button>
           <button onClick={handleLogout} style={logoutBtn}><LogOut size={16}/> Logout</button>
         </div>
       </div>
 
       <div style={statsGrid}>
-        <div style={statCard}><Package color="#1b5e20"/> <div><h3>{products.length}</h3><p>Total Items</p></div></div>
+        <div style={statCard}><Package color="#1b5e20"/> <div><h3>{products.length}</h3><p>Products</p></div></div>
+        <div style={statCard}><ShoppingBag color="#1b5e20"/> <div><h3>{orders.length}</h3><p>Total Orders</p></div></div>
         <div style={statCard}>
           <TrendingUp color="#1b5e20"/> 
-          <div><h3>₹{products.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.stock)), 0)}</h3><p>Inventory Value</p></div>
-        </div>
-        {/* Naya Low Stock Stat Card */}
-        <div style={{...statCard, border: lowStockItems.length > 0 ? "2px solid #ff4d4d" : "none"}}>
-          <AlertTriangle color="#d32f2f"/> 
-          <div><h3 style={{color: "#d32f2f"}}>{lowStockItems.length}</h3><p>Needs Refill</p></div>
+          <div><h3>₹{products.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.stock)), 0)}</h3><p>Stock Value</p></div>
         </div>
       </div>
 
@@ -164,11 +181,55 @@ export default function AdminDashboard() {
             <input placeholder="Image URL" style={inputStyle} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
           </div>
           <button onClick={editId ? handleUpdateProduct : handleAddProduct} style={saveBtn}>
-            {editId ? "Update Product Details" : "Add to Inventory"}
+            {editId ? "Update Details" : "Add to Store"}
           </button>
         </div>
       )}
 
+      {/* --- ORDER MANAGEMENT SECTION (NEW) --- */}
+      <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Truck size={24} style={{verticalAlign:"bottom"}}/> Manage Customer Orders</h2>
+      <div style={tableContainer}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#2e7d32", color: "white", textAlign: "left" }}>
+              <th style={thStyle}>Order ID</th>
+              <th style={thStyle}>Customer Details</th>
+              <th style={thStyle}>Product & Total</th>
+              <th style={thStyle}>Current Status</th>
+              <th style={thStyle}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.id} style={{ borderBottom: "1px solid #eee" }}>
+                <td style={tdStyle}><small>#{o.id.slice(-6)}</small></td>
+                <td style={tdStyle}>
+                  <b>{o.userName}</b><br/>
+                  <small>{o.userMobile}</small><br/>
+                  <span style={{fontSize:"11px", color:"#666"}}>{o.address}</span>
+                </td>
+                <td style={tdStyle}>
+                  {o.productName} <br/>
+                  <b style={{color: "#1b5e20"}}>₹{o.price}</b>
+                </td>
+                <td style={tdStyle}>
+                  <span style={statusBadge(o.status)}>{o.status}</span>
+                </td>
+                <td style={tdStyle}>
+                  <div style={{display:"flex", gap:"5px", flexWrap:"wrap"}}>
+                    <button onClick={() => updateOrderStatus(o.id, "Shipped")} style={shipBtn}>Ship</button>
+                    <button onClick={() => updateOrderStatus(o.id, "Delivered")} style={deliverBtn}>Deliver</button>
+                    <button onClick={() => rejectOrder(o.id)} style={rejectBtn}><Ban size={14}/></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* --- INVENTORY SECTION (RETAINED) --- */}
+      <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Package size={24} style={{verticalAlign:"bottom"}}/> Product Inventory</h2>
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -176,33 +237,20 @@ export default function AdminDashboard() {
               <th style={thStyle}>Image</th>
               <th style={thStyle}>Name</th>
               <th style={thStyle}>Price</th>
-              <th style={thStyle}>Stock Status</th>
-              <th style={thStyle}>Visibility</th>
+              <th style={thStyle}>Stock</th>
               <th style={thStyle}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {displayedProducts.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
-                <td style={tdStyle}><img src={p.image || "/logo.png"} style={{width:"45px", height:"45px", borderRadius:"8px", objectFit:"cover"}} /></td>
-                <td style={tdStyle}><b>{p.name}</b><br/><small>{p.quantity}</small></td>
+                <td style={tdStyle}><img src={p.image || "/logo.png"} style={{width:"40px", borderRadius:"5px"}} /></td>
+                <td style={tdStyle}><b>{p.name}</b></td>
                 <td style={tdStyle}>₹{p.price}</td>
+                <td style={tdStyle}>{p.stock}</td>
                 <td style={tdStyle}>
-                  <div style={{display: "flex", alignItems: "center", gap: "5px"}}>
-                    <b style={{color: Number(p.stock) < 10 ? '#d32f2f' : 'inherit'}}>{p.stock}</b>
-                    {Number(p.stock) < 10 && <span style={refillTag}>Refill Soon!</span>}
-                  </div>
-                </td>
-                <td style={tdStyle}>
-                  <button onClick={() => toggleStock(p.id, p.inStock)} style={p.inStock ? stockIn : stockOut}>
-                    {p.inStock ? "Active" : "Hidden"}
-                  </button>
-                </td>
-                <td style={tdStyle}>
-                  <div style={{display:"flex", gap:"10px"}}>
-                    <Edit3 size={18} color="#1b5e20" style={{cursor:"pointer"}} onClick={() => handleEditClick(p)} />
-                    <Trash2 size={18} color="#d32f2f" style={{cursor:"pointer"}} onClick={() => handleDelete(p.id)} />
-                  </div>
+                  <Edit3 size={18} color="#1b5e20" style={{cursor:"pointer", marginRight:"10px"}} onClick={() => handleEditClick(p)} />
+                  <Trash2 size={18} color="#d32f2f" style={{cursor:"pointer"}} onClick={() => handleDelete(p.id)} />
                 </td>
               </tr>
             ))}
@@ -213,9 +261,18 @@ export default function AdminDashboard() {
   );
 }
 
-// --- UPDATED STYLES ---
-const filterBtn = { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #d32f2f", color: "#d32f2f", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "12px", transition: "0.3s" };
-const refillTag = { background: "#ffebee", color: "#d32f2f", fontSize: "10px", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" };
+// --- NEW STYLES ---
+const shipBtn = { background: "#eff6ff", color: "#1e40af", border: "1px solid #1e40af", padding: "4px 8px", borderRadius: "5px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" };
+const deliverBtn = { background: "#dcfce7", color: "#166534", border: "1px solid #166534", padding: "4px 8px", borderRadius: "5px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" };
+const rejectBtn = { background: "#fee2e2", color: "#991b1b", border: "1px solid #991b1b", padding: "4px 8px", borderRadius: "5px", cursor: "pointer" };
+const statusBadge = (status) => ({
+  background: status === "Delivered" ? "#dcfce7" : status === "Shipped" ? "#eff6ff" : "#fef3c7",
+  color: status === "Delivered" ? "#166534" : status === "Shipped" ? "#1e40af" : "#92400e",
+  padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "bold"
+});
+
+// --- EXISTING STYLES ---
+const filterBtn = { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #d32f2f", color: "#d32f2f", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "12px" };
 const headerSection = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" };
 const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "30px" };
 const statCard = { background: "white", padding: "20px", borderRadius: "15px", display: "flex", alignItems: "center", gap: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" };
@@ -231,8 +288,6 @@ const inputStyle = { width:"100%", padding:"12px", borderRadius:"8px", border:"1
 const addBtn = { background:"#1b5e20", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer", fontWeight:"bold" };
 const cancelBtn = { background:"#666", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer" };
 const saveBtn = { width:"100%", padding:"15px", background:"#1b5e20", color:"white", border:"none", borderRadius:"10px", marginTop:"20px", fontWeight:"bold", cursor:"pointer" };
-const tableContainer = { background:"white", borderRadius:"15px", overflow:"hidden", boxShadow:"0 4px 15px rgba(0,0,0,0.02)" };
+const tableContainer = { background: "white", borderRadius: "15px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.02)", overflowX: "auto" };
 const thStyle = { padding:"15px" };
-const tdStyle = { padding:"15px", fontSize:"14px" };
-const stockIn = { background:"#dcfce7", color:"#166534", border:"none", padding:"5px 10px", borderRadius:"5px", cursor:"pointer" };
-const stockOut = { background:"#fee2e2", color:"#991b1b", border:"none", padding:"5px 10px", borderRadius:"5px", cursor:"pointer" };
+const tdStyle = { padding:"15px", fontSize:"13px" };
