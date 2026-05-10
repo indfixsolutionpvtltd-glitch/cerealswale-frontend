@@ -9,14 +9,16 @@ export default function Register() {
     mobile: "",
     email: "",
     address: "",
+    dob: "", // 👈 DOB State add ki gayi hai
     password: ""
   });
 
   const handleRegister = async () => {
-    const { name, mobile, email, address, password } = formData;
+    const { name, mobile, email, address, dob, password } = formData;
 
-    if (!name || !mobile || !email || !address || !password) {
-      alert("Kripya saari details bharein! ⚠️");
+    // Validation update: dob check bhi add kiya gaya hai
+    if (!name || !mobile || !email || !address || !dob || !password) {
+      alert("Kripya saari details (DOB ke sath) bharein! ⚠️");
       return;
     }
 
@@ -30,17 +32,18 @@ export default function Register() {
         return;
       }
 
-      // 2. Database mein permanent save karein
+      // 2. Database mein permanent save karein (DOB ke sath)
       await set(userRef, {
         name,
         mobile,
         email,
         address,
-        password, // Security tip: Real projects mein ise hash karna chahiye
+        dob, // 👈 DOB database mein save ho raha hai
+        password,
         createdAt: new Date().toISOString()
       });
 
-      alert("Registration Successful! Permanent Database mein save ho gaya ✅");
+      alert("Registration Successful! DOB ke sath data save ho gaya ✅");
       window.location.href = "/login";
     } catch (error) {
       alert("Error: " + error.message);
@@ -58,6 +61,17 @@ export default function Register() {
         
         <input type="email" placeholder="Email ID" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={inputStyle} />
         
+        {/* --- Date of Birth Input Field --- */}
+        <div style={{marginTop: "15px"}}>
+          <label style={{fontSize: "12px", color: "#666", marginLeft: "5px"}}>Date of Birth (DOB)</label>
+          <input 
+            type="date" 
+            value={formData.dob} 
+            onChange={(e) => setFormData({...formData, dob: e.target.value})} 
+            style={{...inputStyle, marginTop: "5px"}} 
+          />
+        </div>
+
         <textarea placeholder="Pura Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} style={{...inputStyle, height: "80px"}} />
         
         <input type="password" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} style={inputStyle} />
