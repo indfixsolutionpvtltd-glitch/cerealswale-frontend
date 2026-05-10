@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Package, Clock, Truck, CheckCircle } from "lucide-react";
+import { Package, Clock, Truck, CheckCircle, Download, Loader2 } from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("cw_user"));
@@ -14,12 +15,12 @@ export default function OrdersPage() {
       window.location.href = "/login";
       return;
     }
+    setCurrentUser(savedUser);
 
     const ordersRef = ref(db, 'orders');
     onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Sirf is user ke orders filter karein (Mobile number ke basis par)
         const userOrders = Object.keys(data)
           .map(key => ({ id: key, ...data[key] }))
           .filter(order => order.userMobile === savedUser.mobile);
@@ -29,6 +30,70 @@ export default function OrdersPage() {
       setLoading(false);
     });
   }, []);
+
+  // --- Invoice Generation Logic ---
+  const downloadInvoice = (order) => {
+    const printWindow = window.open('', '_blank');
+    const invoiceHTML = `
+      <html>
+        <head>
+          <title>Invoice - ${order.id.slice(-6)}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            .header { text-align: center; border-bottom: 2px solid #1b5e20; padding-bottom: 10px; }
+            .biz-name { color: #1b5e20; font-size: 28px; font-weight: bold; margin: 0; }
+            .details { display: flex; justify-content: space-between; margin-top: 20px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+            .table th, .table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            .table th { background-color: #f4fdf2; }
+            .total { text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <p class="biz-name">CerealsWale</p>
+            <p>Quality Grains & Cereals | One Click Par</p>
+          </div>
+          <div class="details">
+            <div>
+              <p><strong>Billed To:</strong></p>
+              <p>${currentUser?.name}<br>${currentUser?.mobile}<br>${currentUser?.address || 'N/A'}</p>
+            </div>
+            <div style="text-align: right;">
+              <p><strong>Invoice Details:</strong></p>
+              <p>Order ID: #${order.id.slice(-6)}<br>Date: ${new Date(order.date).toLocaleDateString()}<br>Status: ${order.status}</p>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Product Description</th>
+                <th>Quantity</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${order.productName}</td>
+                <td>${order.quantity}</td>
+                <td>₹${order.price}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="total">Total Amount: ₹${order.price}</div>
+          <div class="footer">
+            <p>Thank you for shopping with CerealsWale!</p>
+            <p>This is a computer generated invoice.</p>
+            <button class="no-print" onclick="window.print()" style="margin-top:20px; padding:10px 20px; background:#1b5e20; color:white; border:none; border-radius:5px; cursor:pointer;">Print Invoice</button>
+          </div>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(invoiceHTML);
+    printWindow.document.close();
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -66,6 +131,14 @@ export default function OrdersPage() {
                 <span>Total: <b style={{ color: "#1b5e20" }}>₹{order.price}</b></span>
                 <span>Date: {new Date(order.date).toLocaleDateString()}</span>
               </div>
+              
+              {/* Invoice Button Added Surgically */}
+              <button 
+                onClick={() => downloadInvoice(order)}
+                style={invoiceBtnStyle}
+              >
+                <Download size={14} /> Download Invoice
+              </button>
             </div>
           ))
         ) : (
@@ -82,7 +155,9 @@ export default function OrdersPage() {
 // Styles
 const orderCardStyle = { background: "white", padding: "20px", borderRadius: "15px", marginBottom: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #eee" };
 const orderHeader = { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0", paddingBottom: "10px" };
-const orderFooter = { display: "flex", justifyContent: "space-between", marginTop: "15px", fontSize: "14px", color: "#444" };
+const orderFooter = { display: "flex", justifyContent: "space-between", marginTop: "15px", fontSize: "14px", color: "#444", marginBottom: "15px" };
+const invoiceBtnStyle = { display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf2", color: "#1b5e20", border: "1px solid #1b5e20", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "bold", transition: "0.2s" };
+
 const statusBadge = (status) => ({
   display: "flex", alignItems: "center", gap: "5px", padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold",
   background: status === "Delivered" ? "#dcfce7" : status === "Pending" ? "#fef3c7" : "#eff6ff",
