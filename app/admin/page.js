@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue, set, push, update, remove } from "firebase/database";
-import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp } from "lucide-react";
+import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Filter } from "lucide-react";
 
 export default function AdminDashboard() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -12,7 +12,8 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
-  const [editId, setEditId] = useState(null); // Edit tracking
+  const [editId, setEditId] = useState(null);
+  const [filterLowStock, setFilterLowStock] = useState(false); // 👈 Low Stock filter state
 
   const [newProduct, setNewProduct] = useState({
     name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true
@@ -36,6 +37,10 @@ export default function AdminDashboard() {
       setLoading(false);
     });
   }, []);
+
+  // --- Calculations for Alerts ---
+  const lowStockItems = products.filter(p => Number(p.stock) < 10);
+  const displayedProducts = filterLowStock ? lowStockItems : products;
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -62,7 +67,6 @@ export default function AdminDashboard() {
     } catch (e) { alert(e.message); }
   };
 
-  // --- EDIT LOGIC ---
   const handleEditClick = (product) => {
     setEditId(product.id);
     setNewProduct({ ...product });
@@ -110,10 +114,16 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ background: "#f4f7f6", minHeight: "100vh", padding: "30px 5%" }}>
-      {/* HEADER & STATS */}
       <div style={headerSection}>
         <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Inventory Control</h1>
         <div style={{display:"flex", gap:"10px"}}>
+          <button 
+            onClick={() => setFilterLowStock(!filterLowStock)} 
+            style={{...filterBtn, background: filterLowStock ? "#d32f2f" : "#fff"}}
+          >
+            <AlertTriangle size={16} color={filterLowStock ? "#fff" : "#d32f2f"} />
+            {filterLowStock ? "Show All" : `Low Stock (${lowStockItems.length})`}
+          </button>
           <button onClick={() => { setIsAdding(!isAdding); setEditId(null); }} style={isAdding ? cancelBtn : addBtn}>
             {isAdding ? "Cancel" : "+ Add New"}
           </button>
@@ -123,10 +133,17 @@ export default function AdminDashboard() {
 
       <div style={statsGrid}>
         <div style={statCard}><Package color="#1b5e20"/> <div><h3>{products.length}</h3><p>Total Items</p></div></div>
-        <div style={statCard}><TrendingUp color="#1b5e20"/> <div><h3>₹{products.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.stock)), 0)}</h3><p>Inventory Value</p></div></div>
+        <div style={statCard}>
+          <TrendingUp color="#1b5e20"/> 
+          <div><h3>₹{products.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.stock)), 0)}</h3><p>Inventory Value</p></div>
+        </div>
+        {/* Naya Low Stock Stat Card */}
+        <div style={{...statCard, border: lowStockItems.length > 0 ? "2px solid #ff4d4d" : "none"}}>
+          <AlertTriangle color="#d32f2f"/> 
+          <div><h3 style={{color: "#d32f2f"}}>{lowStockItems.length}</h3><p>Needs Refill</p></div>
+        </div>
       </div>
 
-      {/* FORM: ADD OR EDIT */}
       {isAdding && (
         <div style={formCard}>
           <h3 style={{color:"#1b5e20"}}>{editId ? "✏️ Edit Product" : "📦 Add New Product"}</h3>
@@ -152,7 +169,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TABLE */}
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -160,18 +176,23 @@ export default function AdminDashboard() {
               <th style={thStyle}>Image</th>
               <th style={thStyle}>Name</th>
               <th style={thStyle}>Price</th>
-              <th style={thStyle}>Stock</th>
-              <th style={thStyle}>Status</th>
+              <th style={thStyle}>Stock Status</th>
+              <th style={thStyle}>Visibility</th>
               <th style={thStyle}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
+            {displayedProducts.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
                 <td style={tdStyle}><img src={p.image || "/logo.png"} style={{width:"45px", height:"45px", borderRadius:"8px", objectFit:"cover"}} /></td>
                 <td style={tdStyle}><b>{p.name}</b><br/><small>{p.quantity}</small></td>
                 <td style={tdStyle}>₹{p.price}</td>
-                <td style={{...tdStyle, color: p.stock < 10 ? 'red' : 'black'}}>{p.stock}</td>
+                <td style={tdStyle}>
+                  <div style={{display: "flex", alignItems: "center", gap: "5px"}}>
+                    <b style={{color: Number(p.stock) < 10 ? '#d32f2f' : 'inherit'}}>{p.stock}</b>
+                    {Number(p.stock) < 10 && <span style={refillTag}>Refill Soon!</span>}
+                  </div>
+                </td>
                 <td style={tdStyle}>
                   <button onClick={() => toggleStock(p.id, p.inStock)} style={p.inStock ? stockIn : stockOut}>
                     {p.inStock ? "Active" : "Hidden"}
@@ -193,8 +214,10 @@ export default function AdminDashboard() {
 }
 
 // --- UPDATED STYLES ---
+const filterBtn = { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #d32f2f", color: "#d32f2f", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "12px", transition: "0.3s" };
+const refillTag = { background: "#ffebee", color: "#d32f2f", fontSize: "10px", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" };
 const headerSection = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" };
-const statsGrid = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "30px" };
+const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "30px" };
 const statCard = { background: "white", padding: "20px", borderRadius: "15px", display: "flex", alignItems: "center", gap: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" };
 const loginOverlay = { height:"100vh", width:"100%", display:"flex", justifyContent:"center", alignItems:"center", background:"#f0fdf4" };
 const loginCard = { background:"white", padding:"40px", borderRadius:"20px", boxShadow:"0 10px 30px rgba(0,0,0,0.1)", textAlign:"center", width:"350px" };
