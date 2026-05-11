@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue, set, push, update, remove } from "firebase/database";
-import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Truck, CheckCircle, Ban } from "lucide-react";
+import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Truck, CheckCircle, Ban, Percent } from "lucide-react";
 
 export default function AdminDashboard() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -10,14 +10,16 @@ export default function AdminDashboard() {
   const SECRET_ADMIN_PASSWORD = "Ram@123"; 
 
   const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]); // 👈 Naya state orders ke liye
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState(null);
   const [filterLowStock, setFilterLowStock] = useState(false);
 
+  // --- UPDATED STATE: Naye fields add kiye ---
   const [newProduct, setNewProduct] = useState({
-    name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true
+    name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", 
+    price: "", originalPrice: "", discount: "", stock: "", image: "", description: "", inStock: true
   });
 
   const quantityOptions = ["250 GM", "500 GM", "1 KG", "5 KG", "10 KG", "25 KG", "50 KG"];
@@ -28,7 +30,6 @@ export default function AdminDashboard() {
     const authStatus = sessionStorage.getItem("admin_authenticated");
     if (authStatus === "true") setIsAdminLoggedIn(true);
 
-    // Fetch Products
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
@@ -38,7 +39,6 @@ export default function AdminDashboard() {
       }
     });
 
-    // Fetch Orders (Naya Logic)
     const ordersRef = ref(db, 'orders');
     onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
@@ -67,7 +67,6 @@ export default function AdminDashboard() {
     window.location.reload();
   };
 
-  // --- ORDER MANAGEMENT LOGIC ---
   const updateOrderStatus = (orderId, newStatus) => {
     update(ref(db, `orders/${orderId}`), { status: newStatus });
     alert(`Order ${newStatus} ho gaya! ✅`);
@@ -79,7 +78,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- INVENTORY LOGIC (RETAINED) ---
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) return alert("Details bharein!");
     try {
@@ -87,7 +85,7 @@ export default function AdminDashboard() {
       const newProdRef = push(productsRef);
       await set(newProdRef, { ...newProduct, createdAt: new Date().toISOString() });
       setIsAdding(false);
-      setNewProduct({ name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true });
+      resetForm();
     } catch (e) { alert(e.message); }
   };
 
@@ -104,8 +102,12 @@ export default function AdminDashboard() {
       alert("Product Updated! ✅");
       setEditId(null);
       setIsAdding(false);
-      setNewProduct({ name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", stock: "", image: "", description: "", inStock: true });
+      resetForm();
     } catch (e) { alert(e.message); }
+  };
+
+  const resetForm = () => {
+    setNewProduct({ name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", originalPrice: "", discount: "", stock: "", image: "", description: "", inStock: true });
   };
 
   const handleDelete = (id) => {
@@ -145,7 +147,7 @@ export default function AdminDashboard() {
             <AlertTriangle size={16} color={filterLowStock ? "#fff" : "#d32f2f"} />
             {filterLowStock ? "Show All" : `Low Stock (${lowStockItems.length})`}
           </button>
-          <button onClick={() => { setIsAdding(!isAdding); setEditId(null); }} style={isAdding ? cancelBtn : addBtn}>
+          <button onClick={() => { setIsAdding(!isAdding); setEditId(null); resetForm(); }} style={isAdding ? cancelBtn : addBtn}>
             {isAdding ? "Cancel" : "+ Add New Product"}
           </button>
           <button onClick={handleLogout} style={logoutBtn}><LogOut size={16}/> Logout</button>
@@ -165,28 +167,35 @@ export default function AdminDashboard() {
         <div style={formCard}>
           <h3 style={{color:"#1b5e20"}}>{editId ? "✏️ Edit Product" : "📦 Add New Product"}</h3>
           <div style={gridForm}>
-            <input placeholder="Name" style={inputStyle} value={newProduct.name} onChange={(e)=>setNewProduct({...newProduct, name:e.target.value})} />
+            <input placeholder="Product Name" style={inputStyle} value={newProduct.name} onChange={(e)=>setNewProduct({...newProduct, name:e.target.value})} />
+            
             <select style={inputStyle} value={newProduct.unitType} onChange={(e)=>setNewProduct({...newProduct, unitType:e.target.value})}>
               <option value="Weight">Weight</option>
               <option value="Liquid">Liquid</option>
               <option value="Packet">Packet</option>
             </select>
+
             <select style={inputStyle} value={newProduct.quantity} onChange={(e)=>setNewProduct({...newProduct, quantity:e.target.value})}>
               {newProduct.unitType === "Weight" && quantityOptions.map(q => <option key={q} value={q}>{q}</option>)}
               {newProduct.unitType === "Liquid" && liquidOptions.map(q => <option key={q} value={q}>{q}</option>)}
               {newProduct.unitType === "Packet" && packetOptions.map(q => <option key={q} value={q}>{q}</option>)}
             </select>
-            <input placeholder="Price" type="number" style={inputStyle} value={newProduct.price} onChange={(e)=>setNewProduct({...newProduct, price:e.target.value})} />
-            <input placeholder="Stock" type="number" style={inputStyle} value={newProduct.stock} onChange={(e)=>setNewProduct({...newProduct, stock:e.target.value})} />
-            <input placeholder="Image URL" style={inputStyle} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
+
+            {/* --- NAYE FIELDS: MRP aur DISCOUNT --- */}
+            <input placeholder="Selling Price (₹)" type="number" style={inputStyle} value={newProduct.price} onChange={(e)=>setNewProduct({...newProduct, price:e.target.value})} />
+            <input placeholder="MRP / Original Price (₹)" type="number" style={inputStyle} value={newProduct.originalPrice} onChange={(e)=>setNewProduct({...newProduct, originalPrice:e.target.value})} />
+            <input placeholder="Discount % (e.g. 38)" type="number" style={inputStyle} value={newProduct.discount} onChange={(e)=>setNewProduct({...newProduct, discount:e.target.value})} />
+            
+            <input placeholder="Stock Available" type="number" style={inputStyle} value={newProduct.stock} onChange={(e)=>setNewProduct({...newProduct, stock:e.target.value})} />
+            <input placeholder="Image URL" style={{...inputStyle, gridColumn: "span 2"}} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
           </div>
           <button onClick={editId ? handleUpdateProduct : handleAddProduct} style={saveBtn}>
-            {editId ? "Update Details" : "Add to Store"}
+            {editId ? "Update Product Details" : "Add to Store"}
           </button>
         </div>
       )}
 
-      {/* --- ORDER MANAGEMENT SECTION (NEW) --- */}
+      {/* --- ORDER MANAGEMENT --- */}
       <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Truck size={24} style={{verticalAlign:"bottom"}}/> Manage Customer Orders</h2>
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -228,7 +237,7 @@ export default function AdminDashboard() {
         </table>
       </div>
 
-      {/* --- INVENTORY SECTION (RETAINED) --- */}
+      {/* --- INVENTORY --- */}
       <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Package size={24} style={{verticalAlign:"bottom"}}/> Product Inventory</h2>
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -236,7 +245,8 @@ export default function AdminDashboard() {
             <tr style={{ background: "#1b5e20", color: "white", textAlign: "left" }}>
               <th style={thStyle}>Image</th>
               <th style={thStyle}>Name</th>
-              <th style={thStyle}>Price</th>
+              <th style={thStyle}>Price (Selling)</th>
+              <th style={thStyle}>Discount</th>
               <th style={thStyle}>Stock</th>
               <th style={thStyle}>Actions</th>
             </tr>
@@ -245,8 +255,9 @@ export default function AdminDashboard() {
             {displayedProducts.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
                 <td style={tdStyle}><img src={p.image || "/logo.png"} style={{width:"40px", borderRadius:"5px"}} /></td>
-                <td style={tdStyle}><b>{p.name}</b></td>
+                <td style={tdStyle}><b>{p.name}</b><br/><small style={{color:"#888"}}>MRP: ₹{p.originalPrice || '-'}</small></td>
                 <td style={tdStyle}>₹{p.price}</td>
+                <td style={tdStyle}>{p.discount ? <span style={{color: "#d32f2f", fontWeight:"bold"}}>{p.discount}% OFF</span> : '-'}</td>
                 <td style={tdStyle}>{p.stock}</td>
                 <td style={tdStyle}>
                   <Edit3 size={18} color="#1b5e20" style={{cursor:"pointer", marginRight:"10px"}} onClick={() => handleEditClick(p)} />
@@ -261,7 +272,7 @@ export default function AdminDashboard() {
   );
 }
 
-// --- NEW STYLES ---
+// --- STYLES ---
 const shipBtn = { background: "#eff6ff", color: "#1e40af", border: "1px solid #1e40af", padding: "4px 8px", borderRadius: "5px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" };
 const deliverBtn = { background: "#dcfce7", color: "#166534", border: "1px solid #166534", padding: "4px 8px", borderRadius: "5px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" };
 const rejectBtn = { background: "#fee2e2", color: "#991b1b", border: "1px solid #991b1b", padding: "4px 8px", borderRadius: "5px", cursor: "pointer" };
@@ -270,8 +281,6 @@ const statusBadge = (status) => ({
   color: status === "Delivered" ? "#166534" : status === "Shipped" ? "#1e40af" : "#92400e",
   padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "bold"
 });
-
-// --- EXISTING STYLES ---
 const filterBtn = { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #d32f2f", color: "#d32f2f", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "12px" };
 const headerSection = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" };
 const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "30px" };
