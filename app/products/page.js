@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Search, Loader2, ShoppingBag, Plus } from "lucide-react";
+import { Search, Loader2, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
@@ -43,19 +43,13 @@ export default function ProductsPage() {
     if (index > -1) {
       currentCart[index].quantity += 1;
     } else {
-      currentCart.push({ ...product, quantity: 1, discount: product.discount || "38" });
+      currentCart.push({ ...product, quantity: 1 });
     }
     
     localStorage.setItem("cart", JSON.stringify(currentCart));
     setCart([...currentCart]);
     alert(`${product.name} cart mein add ho gaya! 🛒`);
   };
-
-  const calculateDiscountPercent = (price) => {
-    // Ye tabhi kaam karega jab aapke database mein 'originalPrice' field ho.
-    // Agar nahi hai, toh main default "38% OFF" dikha raha hoon.
-    return "38"; 
-  }
 
   if (loading) return (
     <div style={loaderStyle}>
@@ -65,12 +59,12 @@ export default function ProductsPage() {
 
   return (
     <div style={{ padding: "20px 5%", background: "#fcfcfc", minHeight: "100vh" }}>
-      {/* Search Header */}
+      {/* Search Header - Updated Placeholder */}
       <div style={searchContainer}>
         <Search size={20} color="#2e7d32" />
         <input 
           type="text" 
-          placeholder="Anaj ya Dal search karein..." 
+          placeholder="Search product..." 
           style={searchInput} 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,16 +81,19 @@ export default function ProductsPage() {
       
       <div style={productGrid}>
         {filteredProducts.map((p) => {
-          const discountPercent = p.originalPrice ? calculateDiscountPercent(p.price) : "38";
+          // Admin Panel Control: Agar 'discount' field hai toh wahi dikhayega, warna blank
+          const discountVal = p.discount ? `${p.discount}%` : null;
+          
           return (
             <div key={p.id} style={productCard}>
               <div style={imgWrapper}>
-                {/* 🏷️ Discount Tag */}
-                <div style={discountTag}>{discountPercent}%<br/>OFF</div>
+                {/* 🏷️ Dynamic Discount Tag from Admin */}
+                {discountVal && (
+                  <div style={discountTag}>{discountVal}<br/>OFF</div>
+                )}
                 
                 <img src={p.image || "/logo.png"} alt={p.name} style={imageStyle} />
                 
-                {/* ➕ Add Button Inside Image */}
                 <button onClick={() => handleAddToCart(p)} style={addBtn}>
                   Add
                 </button>
@@ -104,12 +101,15 @@ export default function ProductsPage() {
               
               <div style={contentStyle}>
                 <h3 style={titleStyle}>{p.name}</h3>
-                <p style={qtyStyle}>{p.quantity || "1 KG"}</p>
+                <p style={qtyStyle}>{p.unit || "1 KG"}</p>
                 
                 <div style={footerStyle}>
                   <div style={{display: "flex", alignItems: "baseline", gap: "5px"}}>
                     <span style={priceStyle}>₹{p.price}</span>
-                    <span style={originalPriceStyle}>₹{p.originalPrice || Number(p.price) + 50}</span>
+                    {/* Dynamic Original Price from Admin */}
+                    {p.originalPrice && (
+                       <span style={originalPriceStyle}>₹{p.originalPrice}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -121,63 +121,19 @@ export default function ProductsPage() {
   );
 }
 
-// --- Modern UI Styles (Inspired by image_8.png) ---
-const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: "15px" };
+// --- Styles unchanged for design consistency ---
+const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "15px" };
 const productCard = { background: "#fff", borderRadius: "15px", border: "1px solid #f0f0f0", overflow: "hidden", boxShadow: "0 4px 10px rgba(0,0,0,0.02)" };
-
-// Image Section with Relative Positioning
-const imgWrapper = { 
-  background: "#f9f9f9", 
-  height: "170px", 
-  display: "flex", 
-  alignItems: "center", 
-  justifyContent: "center", 
-  padding: "10px",
-  position: "relative", // 👈 Crucial for tags
-  overflow: "hidden"
-};
+const imgWrapper = { background: "#f9f9f9", height: "160px", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", position: "relative", overflow: "hidden" };
 const imageStyle = { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" };
-
-// Naya Discount Tag Style
-const discountTag = { 
-  position: "absolute", 
-  top: "10px", 
-  left: "10px", 
-  background: "#ffebee", // Thoda pinkish red
-  color: "#d32f2f", 
-  padding: "5px 8px", 
-  borderRadius: "5px", 
-  fontSize: "10px", 
-  fontWeight: "bold", 
-  textAlign: "center", 
-  lineHeight: "1.2",
-  textTransform: "uppercase"
-};
-
-// Naya ADD Button Style (Image ke upar)
-const addBtn = { 
-  position: "absolute", 
-  bottom: "10px", 
-  right: "10px", 
-  background: "#ffb703", // Peela color
-  color: "white", 
-  border: "none", 
-  padding: "8px 18px", 
-  borderRadius: "15px", 
-  fontWeight: "bold", 
-  cursor: "pointer", 
-  fontSize: "12px",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-  letterSpacing: "0.5px"
-};
-
+const discountTag = { position: "absolute", top: "10px", left: "10px", background: "#ffebee", color: "#d32f2f", padding: "5px 8px", borderRadius: "5px", fontSize: "10px", fontWeight: "bold", textAlign: "center", lineHeight: "1.2" };
+const addBtn = { position: "absolute", bottom: "10px", right: "10px", background: "#ffb703", color: "white", border: "none", padding: "8px 18px", borderRadius: "15px", fontWeight: "bold", cursor: "pointer", fontSize: "12px", boxShadow: "0 4px 10px rgba(0,0,0,0.1)" };
 const contentStyle = { padding: "12px" };
 const titleStyle = { fontSize: "14px", fontWeight: "600", margin: "0 0 4px 0", color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" };
 const qtyStyle = { fontSize: "11px", color: "#888", marginBottom: "8px" };
 const footerStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
 const priceStyle = { fontSize: "16px", fontWeight: "800", color: "#333" };
-const originalPriceStyle = { fontSize: "12px", color: "#888", textDecoration: "line-through", fontWeight: "normal" }; // strike-through price
-
+const originalPriceStyle = { fontSize: "12px", color: "#888", textDecoration: "line-through" };
 const searchContainer = { display: "flex", alignItems: "center", gap: "10px", background: "white", padding: "10px 15px", borderRadius: "12px", border: "1px solid #eee", marginBottom: "25px" };
 const searchInput = { border: "none", outline: "none", width: "100%", fontSize: "14px" };
 const cartStatus = { display: "flex", alignItems: "center", gap: "8px", background: "#e8f5e9", color: "#2e7d32", padding: "6px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" };
