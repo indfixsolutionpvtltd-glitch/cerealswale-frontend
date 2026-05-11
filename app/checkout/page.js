@@ -74,7 +74,7 @@ export default function CheckoutPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
         {/* Order Summary */}
         <div style={sectionBox}>
-          <h3>Saaman ki List</h3>
+          <h3>My Cart List</h3>
           {cartItems.map(item => (
             <div key={item.id} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
               <span>{item.name} (x{item.quantity})</span>
@@ -87,7 +87,7 @@ export default function CheckoutPage() {
 
         {/* Payment Method */}
         <div style={sectionBox}>
-          <h3>Payment Mode Chunein</h3>
+          <h3>Select Payment Mode</h3>
           <div style={{ marginBottom: "20px" }}>
             <label style={payOption}>
               <input type="radio" checked={paymentMethod === "COD"} onChange={() => setPaymentMethod("COD")} />
