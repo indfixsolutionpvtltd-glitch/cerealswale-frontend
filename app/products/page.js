@@ -1,9 +1,8 @@
-"use client"; // Sabse upar ye hona zaroori hai
-
+"use client";
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Search, ShoppingCart, Loader2, ArrowRight } from "lucide-react";
+import { Search, ShoppingCart, Loader2, Plus, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
@@ -12,8 +11,13 @@ export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
+    // Sync local state with localStorage for instant UI update
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCart(savedCart);
+
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
@@ -26,7 +30,6 @@ export default function ProductsPage() {
     });
   }, []);
 
-  // Search Logic
   useEffect(() => {
     const results = products.filter(product =>
       product.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -34,73 +37,98 @@ export default function ProductsPage() {
     setFilteredProducts(results);
   }, [searchTerm, products]);
 
-  // Buy Now Logic
-  const handleBuyNow = (product) => {
-    const cartItem = { 
-      id: product.id, 
-      name: product.name, 
-      price: product.price, 
-      quantity: 1 
-    };
-    // Local storage mein save karke checkout par bhejna
-    localStorage.setItem("cart", JSON.stringify([cartItem]));
-    router.push("/checkout");
+  const handleAddToCart = (product) => {
+    let currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const index = currentCart.findIndex(item => item.id === product.id);
+    
+    if (index > -1) {
+      currentCart[index].quantity += 1;
+    } else {
+      currentCart.push({ ...product, quantity: 1 });
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(currentCart));
+    setCart([...currentCart]); // Update local state
+    alert(`${product.name} cart mein add ho gaya! 🛒`);
   };
 
   if (loading) return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#1b5e20", gap: "10px" }}>
+    <div style={loaderStyle}>
       <Loader2 className="animate-spin" /> Loading Products...
     </div>
   );
 
   return (
-    <div style={{ padding: "30px 5%", background: "#f8fdf9", minHeight: "100vh" }}>
-      {/* Search Bar Section */}
+    <div style={{ padding: "20px 5%", background: "#fcfcfc", minHeight: "100vh" }}>
+      {/* Search Header */}
       <div style={searchContainer}>
-        <Search size={20} color="#666" />
+        <Search size={20} color="#2e7d32" />
         <input 
           type="text" 
-          placeholder="Anaj ya dal search karein..." 
+          placeholder="Anaj ya Dal search karein..." 
           style={searchInput} 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <h2 style={{ color: "#1b5e20", marginBottom: "20px" }}>Hamare Products</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h2 style={{ color: "#333", fontSize: "22px" }}>Products</h2>
+        <div onClick={() => router.push("/checkout")} style={cartStatus}>
+          <ShoppingBag size={20} />
+          <span>{cart.reduce((acc, curr) => acc + curr.quantity, 0)} Items</span>
+        </div>
+      </div>
       
       <div style={productGrid}>
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((p) => (
-            <div key={p.id} style={productCard}>
-              <div style={imgContainer}>
-                <img src={p.image || "/logo.png"} alt={p.name} style={productImg} />
-              </div>
-              <h3 style={{ fontSize: "16px", margin: "10px 0", height: "40px", overflow: "hidden" }}>{p.name}</h3>
-              <p style={{ color: "#1b5e20", fontWeight: "bold", fontSize: "18px", margin: "10px 0" }}>₹{p.price}</p>
+        {filteredProducts.map((p) => (
+          <div key={p.id} style={productCard}>
+            <div style={imgWrapper}>
+              <img src={p.image || "/logo.png"} alt={p.name} style={imageStyle} />
+            </div>
+            
+            <div style={contentStyle}>
+              <h3 style={titleStyle}>{p.name}</h3>
+              <p style={qtyStyle}>{p.quantity || "1 KG"}</p>
               
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <button onClick={() => handleBuyNow(p)} style={buyNowBtn}>
-                  Buy Now <ArrowRight size={16} />
+              <div style={footerStyle}>
+                <span style={priceStyle}>₹{p.price}</span>
+                <button onClick={() => handleAddToCart(p)} style={addBtn}>
+                  <Plus size={18} /> ADD
                 </button>
               </div>
             </div>
-          ))
-        ) : (
-          <div style={{ textAlign: "center", width: "100%", padding: "50px" }}>
-             <p style={{ color: "#666" }}>Koi product nahi mila.</p>
           </div>
-        )}
+        ))}
       </div>
+      
+      {/* Floating Checkout Button */}
+      {cart.length > 0 && (
+        <div style={floatingCart} onClick={() => router.push("/checkout")}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <ShoppingCart size={24} />
+            <span>{cart.length} Products in Cart</span>
+          </div>
+          <b>View Cart →</b>
+        </div>
+      )}
     </div>
   );
 }
 
-// --- Internal Styles ---
-const searchContainer = { display: "flex", alignItems: "center", gap: "10px", background: "white", padding: "12px 20px", borderRadius: "30px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginBottom: "30px", border: "1px solid #eefae1" };
-const searchInput = { border: "none", outline: "none", width: "100%", fontSize: "16px" };
-const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "25px" };
-const productCard = { background: "white", padding: "20px", borderRadius: "20px", textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.03)", border: "1px solid #eee", transition: "transform 0.2s" };
-const imgContainer = { height: "160px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "10px" };
-const productImg = { maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: "10px" };
-const buyNowBtn = { width: "100%", padding: "12px", background: "#1b5e20", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "bold", fontSize: "14px" };
+// --- Modern UI Styles (As per your Image) ---
+const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "15px" };
+const productCard = { background: "#fff", borderRadius: "15px", border: "1px solid #f0f0f0", overflow: "hidden", boxShadow: "0 4px 10px rgba(0,0,0,0.02)" };
+const imgWrapper = { background: "#f9f9f9", height: "140px", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" };
+const imageStyle = { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" };
+const contentStyle = { padding: "12px" };
+const titleStyle = { fontSize: "14px", fontWeight: "600", margin: "0 0 4px 0", color: "#333" };
+const qtyStyle = { fontSize: "12px", color: "#888", marginBottom: "10px" };
+const footerStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
+const priceStyle = { fontSize: "16px", fontWeight: "bold", color: "#1b5e20" };
+const addBtn = { background: "#fff", color: "#2e7d32", border: "1px solid #2e7d32", padding: "5px 12px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px" };
+const searchContainer = { display: "flex", alignItems: "center", gap: "10px", background: "white", padding: "10px 15px", borderRadius: "12px", border: "1px solid #eee", marginBottom: "25px" };
+const searchInput = { border: "none", outline: "none", width: "100%", fontSize: "14px" };
+const floatingCart = { position: "fixed", bottom: "85px", left: "5%", right: "5%", background: "#1b5e20", color: "white", padding: "15px 20px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 5px 20px rgba(0,0,0,0.2)", cursor: "pointer", zIndex: 100 };
+const cartStatus = { display: "flex", alignItems: "center", gap: "8px", background: "#e8f5e9", color: "#2e7d32", padding: "6px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" };
+const loaderStyle = { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#1b5e20", gap: "10px" };
