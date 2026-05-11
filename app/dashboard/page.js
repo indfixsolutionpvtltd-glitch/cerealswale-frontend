@@ -94,7 +94,7 @@ export default function Dashboard() {
         <div style={userInfo}>
           <div style={userAvatar}><UserIcon size={30} color="white" /></div>
           <div>
-            <h2 style={{margin: 0, color: "#1b5e20"}}>Swagat hai, {user?.name || "User"}! 👋</h2>
+            <h2 style={{margin: 0, color: "#1b5e20"}}>WELCOME, {user?.name || "User"}! 👋</h2>
             <p style={{margin: 0, fontSize: "12px", color: "#666"}}>Mobile: {user?.mobile || "N/A"} | Email: {user?.email || "N/A"}</p>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
 
       {/* 2. SEARCH SECTION */}
       <div style={{padding: "0 5%"}}>
-        <h3 style={{color: "#333", marginBottom: "10px"}}>Aap Kya Dhund Rahe Hain?</h3>
+        <h3 style={{color: "#333", marginBottom: "10px"}}>What are you finding?</h3>
         <div style={searchContainer}>
           <Search size={20} color="#666" />
           <input 
