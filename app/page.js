@@ -2,31 +2,32 @@
 import React, { useState } from "react";
 import { 
   LayoutDashboard, Building2, Globe2, Lightbulb, Briefcase, Mail, 
-  ChevronDown, User, LogIn, Menu, X, CheckCircle, ArrowRight, Sprout, TrendingUp
+  ChevronDown, User, LogIn, CheckCircle, ArrowRight, TrendingUp, Package
 } from "lucide-react";
 
 export default function Home() {
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Background Image Path (Spaces handled with %20)
+  // Background Image Path
   const heroBackground = "/web%20site%20stock%20photo.jpg"; 
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Roboto, sans-serif", background: "#fff", margin: 0 }}>
       
-      {/* --- TOP HEADER (Column 1) --- */}
+      {/* --- TOP HEADER (Column 1) - FIXED: No Repetition --- */}
       <nav style={topHeaderStyle}>
         <div style={containerStyle}>
-          <div style={logoArea}>
-            <img src="/logo.png" alt="Catalyst CerealsWale" style={{ height: "40px" }} />
-            <span style={brandName}>CEREALSWALE</span>
-          </div>
-          <div style={topNavLinks}>
-            <a href="/" style={topLink}>Home</a>
-            <a href="/login" style={topLink}><LogIn size={16} /> Login</a>
-            <a href="/register" style={topLink}><User size={16} /> Register</a>
-            <a href="/admin" style={adminBtnStyle}>Admin</a>
+          <div style={headerContent}>
+            <div style={logoArea}>
+              <img src="/logo.png" alt="Catalyst CerealsWale" style={{ height: "40px" }} />
+              <span style={brandName}>CEREALSWALE</span>
+            </div>
+            <div style={topNavLinks}>
+              <a href="/" style={topLink}>Home</a>
+              <a href="/login" style={topLink}><LogIn size={16} /> Login</a>
+              <a href="/register" style={topLink}><User size={16} /> Register</a>
+              <a href="/admin" style={adminBtnStyle}>Admin</a>
+            </div>
           </div>
         </div>
       </nav>
@@ -80,7 +81,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- QUICK STATS SECTION --- */}
+      {/* --- QUICK STATS --- */}
       <section style={statsSectionStyle}>
         <div style={containerStyle}>
           <div style={statsGrid}>
@@ -136,7 +137,7 @@ export default function Home() {
             </div>
             <div>
               <h4 style={footerTitle}>Quick Links</h4>
-              <a href="/about" style={footerLink}>About Us</a><br/>
+              <a href="/dashboard" style={footerLink}>Dashboard</a><br/>
               <a href="/careers" style={footerLink}>Careers</a><br/>
               <a href="/contact" style={footerLink}>Franchise Inquiry</a>
             </div>
@@ -155,7 +156,7 @@ export default function Home() {
   );
 }
 
-// --- SUB-COMPONENTS ---
+// --- COMPONENTS ---
 function FeatureItem({ text }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", color: "#2e7d32", fontWeight: "600" }}>
@@ -176,19 +177,20 @@ function StatCard({ count, label }) {
 
 // --- STYLES ---
 const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
-const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "10px 0" };
+const headerContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
+const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "12px 0" };
 const logoArea = { display: "flex", alignItems: "center", gap: "10px" };
-const brandName = { fontWeight: "900", fontSize: "20px", color: "#1b5e20", letterSpacing: "1px" };
-const topNavLinks = { display: "flex", alignItems: "center", gap: "20px" };
-const topLink = { textDecoration: "none", color: "#666", fontSize: "14px", display: "flex", alignItems: "center", gap: "5px", fontWeight: "500" };
-const adminBtnStyle = { textDecoration: "none", color: "#d32f2f", border: "1px solid #d32f2f", padding: "4px 12px", borderRadius: "5px", fontSize: "12px", fontWeight: "bold" };
+const brandName = { fontWeight: "900", fontSize: "22px", color: "#1b5e20", letterSpacing: "1px" };
+const topNavLinks = { display: "flex", alignItems: "center", gap: "25px" };
+const topLink = { textDecoration: "none", color: "#444", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", fontWeight: "600" };
+const adminBtnStyle = { textDecoration: "none", color: "#d32f2f", border: "1px solid #d32f2f", padding: "5px 15px", borderRadius: "6px", fontSize: "13px", fontWeight: "bold" };
 
-const mainNavStyle = { background: "#f8fdf9", borderBottom: "2px solid #e8f5e9", padding: "15px 0" };
-const mainLinks = { display: "flex", gap: "30px", alignItems: "center" };
-const mainLink = { background: "none", border: "none", textDecoration: "none", color: "#333", fontWeight: "600", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center" };
+const mainNavStyle = { background: "#f8fdf9", borderBottom: "2px solid #e8f5e9", padding: "18px 0" };
+const mainLinks = { display: "flex", gap: "35px", alignItems: "center" };
+const mainLink = { background: "none", border: "none", textDecoration: "none", color: "#333", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center" };
 
-const dropdownStyle = { position: "absolute", top: "100%", left: 0, background: "white", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", borderRadius: "10px", width: "260px", padding: "10px", zIndex: 100 };
-const dropdownItem = { display: "block", padding: "12px", textDecoration: "none", color: "#333", fontSize: "14px", fontWeight: "500", borderRadius: "5px", transition: "0.2s", hover: { background: "#f1f8e9" } };
+const dropdownStyle = { position: "absolute", top: "100%", left: 0, background: "white", boxShadow: "0 10px 40px rgba(0,0,0,0.12)", borderRadius: "12px", width: "280px", padding: "12px", zIndex: 1000, marginTop: "10px", border: "1px solid #eee" };
+const dropdownItem = { display: "block", padding: "12px 15px", textDecoration: "none", color: "#333", fontSize: "14px", fontWeight: "600", borderRadius: "8px", transition: "0.2s" };
 
 const heroSectionStyle = { minHeight: "80vh", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", color: "white" };
 const heroHeading = { fontSize: "clamp(36px, 6vw, 65px)", fontWeight: "800", lineHeight: "1.1", marginBottom: "20px" };
@@ -197,15 +199,15 @@ const heroSubheading = { fontSize: "clamp(18px, 2vw, 22px)", maxWidth: "700px", 
 const primaryBtn = { padding: "18px 35px", background: "#2e7d32", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 4px 15px rgba(0,0,0,0.3)" };
 const secondaryBtn = { padding: "18px 35px", border: "2px solid white", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", backdropFilter: "blur(5px)" };
 
-const statsSectionStyle = { background: "#fff", padding: "40px 0", borderBottom: "1px solid #eee" };
-const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" };
+const statsSectionStyle = { background: "#fff", padding: "50px 0", borderBottom: "1px solid #eee" };
+const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "25px" };
 
 const grid2Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" };
 const grid4Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "40px" };
-const sectionHeading = { fontSize: "40px", fontWeight: "800", marginBottom: "25px" };
+const sectionHeading = { fontSize: "42px", fontWeight: "800", marginBottom: "25px", color: "#333" };
 const textStyle = { color: "#555", lineHeight: "1.8", fontSize: "17px" };
-const aboutImgStyle = { width: "100%", borderRadius: "25px", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" };
+const aboutImgStyle = { width: "100%", borderRadius: "30px", boxShadow: "0 20px 50px rgba(0,0,0,0.12)" };
 
 const footerStyle = { background: "#1b5e20", color: "white", padding: "80px 0 30px" };
-const footerTitle = { fontSize: "18px", marginBottom: "20px" };
-const footerLink = { color: "white", opacity: 0.7, textDecoration: "none", fontSize: "14px", lineHeight: "2.5" };
+const footerTitle = { fontSize: "18px", fontWeight: "700", marginBottom: "20px" };
+const footerLink = { color: "white", opacity: 0.8, textDecoration: "none", fontSize: "14px", lineHeight: "2.8", fontWeight: "500" };
