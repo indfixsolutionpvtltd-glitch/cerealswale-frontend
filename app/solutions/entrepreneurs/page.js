@@ -80,11 +80,13 @@ function StatBox({ icon, num, text }) {
   );
 }
 
-// --- STYLES ---
+// --- STYLES (FIXED: Added containerStyle) ---
+const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
 const heroEntrepreneurStyle = { 
   minHeight: "80vh", 
   backgroundImage: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1590682680695-43b964a3ae17?w=1600')", 
   backgroundSize: "cover", 
+  backgroundPosition: "center",
   display: "flex", 
   alignItems: "center" 
 };
