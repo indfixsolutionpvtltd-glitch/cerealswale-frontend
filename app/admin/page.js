@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     if (adminPass === SECRET_ADMIN_PASSWORD) {
       sessionStorage.setItem("admin_authenticated", "true");
       setIsAdminLoggedIn(true);
-      setLoading(true); // Loading dikhao jab data fetch ho raha ho
+      setLoading(true); // Direct call fetchAdminData instead of reload to avoid permission race
       fetchAdminData();
     } else { 
       alert("Galat Password! ❌"); 
