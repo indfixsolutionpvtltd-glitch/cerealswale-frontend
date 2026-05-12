@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, set, push } from "firebase/database";
-import { CreditCard, CheckCircle, Smartphone, Truck, ExternalLink } from "lucide-react";
+import { CreditCard, CheckCircle, Smartphone, Truck, ExternalLink, ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,15 +16,27 @@ export default function CheckoutPage() {
   useEffect(() => {
     const items = JSON.parse(localStorage.getItem("cart")) || [];
     setCartItems(items);
+    
+    // Agar cart bilkul khali hai toh user ko wapas products page par bhej do
+    if (items.length === 0) {
+       // Thoda wait karke redirect karenge taaki user ko message dikhe
+       setTimeout(() => {
+         // router.push("/products"); // Aap ise uncomment kar sakte hain automatic redirect ke liye
+       }, 3000);
+    }
   }, []);
 
   const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-  // Smart UPI Intent Link (Mobile Apps ke liye)
   const upiId = "cerealswale@ptyes";
   const upiUrl = `upi://pay?pa=${upiId}&pn=CerealsWale&am=${totalAmount}&cu=INR`;
 
   const handlePlaceOrder = async () => {
+    // FIX 1: Empty Cart Check
+    if (cartItems.length === 0 || totalAmount <= 0) {
+      return alert("Aapka cart khali hai! Kripya kuch products add karein.");
+    }
+
     const user = JSON.parse(localStorage.getItem("cw_user"));
     if (!user) return alert("Login zaroori hai!");
 
@@ -72,15 +86,27 @@ export default function CheckoutPage() {
       <h2 style={{ color: "#1b5e20" }}>Final Checkout</h2>
       
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
+        
         {/* Order Summary */}
         <div style={sectionBox}>
           <h3>My Cart List</h3>
-          {cartItems.map(item => (
-            <div key={item.id} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
-              <span>{item.name} (x{item.quantity})</span>
-              <b>₹{item.price}</b>
+          
+          {/* FIX 2: Show Empty Message in UI */}
+          {cartItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <ShoppingCart size={40} color="#ccc" />
+              <p style={{ color: "#888" }}>Aapka cart khali hai.</p>
+              <button onClick={() => window.location.href = "/products"} style={{ ...btnStyle, padding: "8px", fontSize: "14px" }}>Go to Shopping</button>
             </div>
-          ))}
+          ) : (
+            cartItems.map(item => (
+              <div key={item.id} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
+                <span>{item.name} (x{item.quantity})</span>
+                <b>₹{item.price}</b>
+              </div>
+            ))
+          )}
+          
           <hr />
           <div style={{ fontSize: "20px", fontWeight: "bold", textAlign: "right" }}>Total: ₹{totalAmount}</div>
         </div>
@@ -102,16 +128,10 @@ export default function CheckoutPage() {
           {paymentMethod === "UPI" && (
             <div style={upiBox}>
               <p style={{ fontWeight: "bold", color: "#1b5e20" }}>Payment Karein</p>
-              
-              {/* Smart App Link (Only works on Mobile) */}
               <a href={upiUrl} style={smartPayBtn}>
                 <ExternalLink size={18} /> Open UPI App (PhonePe/GPay)
               </a>
-
-              <p style={{ margin: "15px 0", fontSize: "12px", color: "#666" }}>या niche diye QR ko scan karein:</p>
-              
               <img src="/qr-code.png" alt="Payment QR" style={{ width: "180px", border: "5px solid white", borderRadius: "10px" }} />
-              
               <div style={{ marginTop: "15px" }}>
                 <input 
                   type="text" 
@@ -119,12 +139,20 @@ export default function CheckoutPage() {
                   style={inputStyle} 
                   onChange={(e) => setUtrNumber(e.target.value)}
                 />
-                <p style={{ fontSize: "10px", color: "#666", marginTop: "5px" }}>*Payment ke baad Transaction ID bharna zaroori hai.</p>
               </div>
             </div>
           )}
 
-          <button onClick={handlePlaceOrder} disabled={isProcessing} style={btnStyle}>
+          {/* FIX 3: Disable Button Visually if Cart is Empty */}
+          <button 
+            onClick={handlePlaceOrder} 
+            disabled={isProcessing || cartItems.length === 0} 
+            style={{ 
+              ...btnStyle, 
+              background: (cartItems.length === 0 || isProcessing) ? "#ccc" : "#1b5e20",
+              cursor: (cartItems.length === 0 || isProcessing) ? "not-allowed" : "pointer"
+            }}
+          >
             {isProcessing ? "Processing..." : "Place Order Now"}
           </button>
         </div>
@@ -133,7 +161,7 @@ export default function CheckoutPage() {
   );
 }
 
-// Styles
+// Styles (same as original)
 const sectionBox = { background: "white", padding: "30px", borderRadius: "20px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" };
 const payOption = { display: "flex", alignItems: "center", gap: "10px", padding: "15px", border: "1px solid #eee", borderRadius: "10px", cursor: "pointer", marginBottom: "10px" };
 const upiBox = { background: "#f0fdf4", padding: "20px", borderRadius: "15px", textAlign: "center", marginBottom: "15px", border: "1px dashed #43a047" };
