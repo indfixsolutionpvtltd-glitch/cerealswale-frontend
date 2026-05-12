@@ -169,7 +169,7 @@ const productCard = { background: "#fff", borderRadius: "15px", border: "1px sol
 
 const imgWrapper = { 
   background: "#fdfdfd", 
-  height: "180px", // Card height thodi badhayi
+  height: "300px", // Card height thodi badhayi
   display: "flex", 
   alignItems: "center", 
   justifyContent: "center", 
