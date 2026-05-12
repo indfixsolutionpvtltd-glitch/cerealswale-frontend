@@ -1,171 +1,211 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { 
-  LayoutDashboard, 
-  Building2, 
-  Globe2, 
-  Lightbulb, 
-  Briefcase, 
-  Mail,
-  CheckCircle 
+  LayoutDashboard, Building2, Globe2, Lightbulb, Briefcase, Mail, 
+  ChevronDown, User, LogIn, Menu, X, CheckCircle, ArrowRight, Sprout, TrendingUp
 } from "lucide-react";
 
 export default function Home() {
-  // FIX: Spaces ko '%20' se replace kiya taaki browser image load kar sake
+  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Background Image Path (Spaces handled with %20)
   const heroBackground = "/web%20site%20stock%20photo.jpg"; 
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Roboto, sans-serif", background: "#fff", margin: 0 }}>
       
-      {/* Hero Section */}
+      {/* --- TOP HEADER (Column 1) --- */}
+      <nav style={topHeaderStyle}>
+        <div style={containerStyle}>
+          <div style={logoArea}>
+            <img src="/logo.png" alt="Catalyst CerealsWale" style={{ height: "40px" }} />
+            <span style={brandName}>CEREALSWALE</span>
+          </div>
+          <div style={topNavLinks}>
+            <a href="/" style={topLink}>Home</a>
+            <a href="/login" style={topLink}><LogIn size={16} /> Login</a>
+            <a href="/register" style={topLink}><User size={16} /> Register</a>
+            <a href="/admin" style={adminBtnStyle}>Admin</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* --- MAIN NAVIGATION (Column 2) --- */}
+      <nav style={mainNavStyle}>
+        <div style={containerStyle}>
+          <div style={mainLinks}>
+            <a href="/dashboard" style={mainLink}>Dashboard</a>
+            <a href="/company" style={mainLink}>Company</a>
+            
+            {/* Solutions Dropdown */}
+            <div 
+              style={{ position: "relative" }} 
+              onMouseEnter={() => setIsSolutionsOpen(true)}
+              onMouseLeave={() => setIsSolutionsOpen(false)}
+            >
+              <button style={mainLink}>
+                Solutions <ChevronDown size={14} style={{ marginLeft: "4px" }} />
+              </button>
+              {isSolutionsOpen && (
+                <div style={dropdownStyle}>
+                  <a href="/solutions/farmers" style={dropdownItem}>Solution For Farmers</a>
+                  <a href="/solutions/entrepreneurs" style={dropdownItem}>Solution For Micro-Entrepreneur</a>
+                  <a href="/solutions/institutional" style={dropdownItem}>Solution For Institutional-Buyers</a>
+                </div>
+              )}
+            </div>
+
+            <a href="/network" style={mainLink}>Network</a>
+            <a href="/careers" style={mainLink}>Careers</a>
+            <a href="/contact" style={mainLink}>Contact Us</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* --- HERO SECTION --- */}
       <section style={{
-        padding: "100px 20px",
-        textAlign: "left",
+        ...heroSectionStyle,
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%), url(${heroBackground})`,
-        backgroundPosition: "center",
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        color: "white",
-        minHeight: "85vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        position: "relative"
       }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
-            <h1 style={{ 
-                fontSize: "clamp(32px, 6vw, 68px)", 
-                marginBottom: "24px", 
-                fontWeight: "800",
-                lineHeight: "1.1",
-                maxWidth: "700px",
-                textShadow: "2px 2px 10px rgba(0,0,0,0.5)" // Text ko aur saaf karne ke liye
-            }}>
-                Smart Solutions for <span style={{ color: "#81c784" }}>Modern Agriculture</span>
-            </h1>
-            <p style={{ 
-                fontSize: "clamp(18px, 2.5vw, 24px)", 
-                maxWidth: "600px", 
-                marginBottom: "40px",
-                lineHeight: "1.6",
-                opacity: "0.9",
-                textShadow: "1px 1px 5px rgba(0,0,0,0.5)"
-            }}>
-                Empowering farmers with high-quality seeds, organic pulses, and innovative agricultural technology for a sustainable future.
-            </p>
-            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                <a href="/products" style={{ 
-                    padding: "18px 40px", 
-                    background: "#2e7d32", 
-                    color: "white", 
-                    borderRadius: "8px", 
-                    textDecoration: "none", 
-                    fontWeight: "bold",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.4)"
-                }}>
-                    Our Products
-                </a>
-                <a href="/contact" style={{ 
-                    padding: "18px 40px", 
-                    border: "2px solid white", 
-                    color: "white", 
-                    borderRadius: "8px", 
-                    textDecoration: "none", 
-                    fontWeight: "bold",
-                    backdropFilter: "blur(5px)"
-                }}>
-                    Contact Us
-                </a>
-            </div>
-        </div>
-      </section>
-
-      {/* Quick Navigation Grid */}
-      <section style={{ padding: "60px 20px", background: "#f1f8e9", marginTop: "-40px", position: "relative", zIndex: 2 }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "25px" }}>
-            <NavCard title="Dashboard" icon={<LayoutDashboard size={24}/>} link="/dashboard" color="#1b5e20" />
-            <NavCard title="Company" icon={<Building2 size={24}/>} link="/company" color="#2e7d32" />
-            <NavCard title="Network" icon={<Globe2 size={24}/>} link="/network" color="#388e3c" />
-            <NavCard title="Solutions" icon={<Lightbulb size={24}/>} link="/solutions" color="#43a047" />
-            <NavCard title="Careers" icon={<Briefcase size={24}/>} link="/careers" color="#4caf50" />
-            <NavCard title="Contact" icon={<Mail size={24}/>} link="/contact" color="#66bb6a" />
+        <div style={containerStyle}>
+          <h1 style={heroHeading}>Modern Tech for <br/><span style={{ color: "#81c784" }}>Sustainable Agriculture</span></h1>
+          <p style={heroSubheading}>
+            Building a trusted ecosystem for Farmers, Entrepreneurs, and Institutional Buyers through innovation and data science.
+          </p>
+          <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+            <a href="/products" style={primaryBtn}>Explore Products <ArrowRight size={18}/></a>
+            <a href="/solutions/farmers" style={secondaryBtn}>Digital Solutions</a>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section style={{ padding: "80px 20px", maxWidth: "1200px", margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" }}>
-          <div>
-            <h2 style={{ color: "#2e7d32", fontSize: "40px", marginBottom: "25px", fontWeight: "700" }}>About Cerealswale</h2>
-            <p style={{ color: "#444", lineHeight: "1.9", fontSize: "17px", marginBottom: "25px" }}>
-              Cerealswale (CATALYST SERVICE PRIVATE LIMITED) is dedicated to revolutionizing the agricultural landscape.
-            </p>
-            <div style={{ display: "grid", gap: "15px" }}>
-              <FeatureItem text="Global Network of 10,000+ Farmers" />
-              <FeatureItem text="Certified Organic Seed Technology" />
-              <FeatureItem text="Sustainable Farming Solutions" />
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800" alt="Agriculture" style={{ width: "100%", borderRadius: "20px", boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }} />
+      {/* --- QUICK STATS SECTION --- */}
+      <section style={statsSectionStyle}>
+        <div style={containerStyle}>
+          <div style={statsGrid}>
+            <StatCard count="10K+" label="Farmers Empowered" />
+            <StatCard count="500+" label="Franchise Centers" />
+            <StatCard count="50+" label="Institutional Partners" />
+            <StatCard count="100%" label="Quality Assured" />
           </div>
         </div>
       </section>
 
-      {/* Expertise Section */}
-      <section style={{ background: "#f9f9f9", padding: "100px 20px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-            <h2 style={{ textAlign: "center", color: "#1b5e20", marginBottom: "60px", fontSize: "36px", fontWeight: "700" }}>Our Expertise</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "30px" }}>
-              <SolutionCard title="Crop Protection" icon="🛡️" desc="Advanced shields to ensure crop safety." />
-              <SolutionCard title="Seed Enhancement" icon="🧬" desc="Higher resilience and better yields." />
-              <SolutionCard title="Digital Farming" icon="📱" desc="IoT and AI-driven field insights." />
-              <SolutionCard title="Yield Optimization" icon="📈" desc="Scientific methods for farm output." />
+      {/* --- ABOUT SECTION --- */}
+      <section style={{ padding: "80px 0" }}>
+        <div style={containerStyle}>
+          <div style={grid2Style}>
+            <div>
+              <h2 style={sectionHeading}>Empowering Rural <span style={{ color: "#2e7d32" }}>India</span></h2>
+              <p style={textStyle}>
+                CerealsWale (CATALYST SERVICE PRIVATE LIMITED) is more than just an agri-tech company. 
+                We are a movement dedicated to revolutionizing the agricultural landscape of India through the 5 A’s: 
+                <b> Access, Affordable Insurance, Affordable Credit, Actionable Advisory, and Profitable Markets.</b>
+              </p>
+              <div style={{ marginTop: "20px" }}>
+                <FeatureItem text="Trustworthy Enterprise-Grade Interface" />
+                <FeatureItem text="Indian Agriculture-Focused Solutions" />
+                <FeatureItem text="Seamless Supply Chain Management" />
+              </div>
             </div>
+            <div style={{ textAlign: "center" }}>
+              <img 
+                src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800" 
+                alt="Agri Tech" 
+                style={aboutImgStyle} 
+              />
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* --- FOOTER --- */}
+      <footer style={footerStyle}>
+        <div style={containerStyle}>
+          <div style={grid4Style}>
+            <div>
+              <h4 style={{ color: "#81c784" }}>CerealsWale</h4>
+              <p style={{ fontSize: "14px", opacity: 0.8 }}>Revolutionizing Indian Agriculture through technology and empathy.</p>
+            </div>
+            <div>
+              <h4 style={footerTitle}>Solutions</h4>
+              <a href="/solutions/farmers" style={footerLink}>For Farmers</a><br/>
+              <a href="/solutions/entrepreneurs" style={footerLink}>For Entrepreneurs</a><br/>
+              <a href="/solutions/institutional" style={footerLink}>For Buyers</a>
+            </div>
+            <div>
+              <h4 style={footerTitle}>Quick Links</h4>
+              <a href="/about" style={footerLink}>About Us</a><br/>
+              <a href="/careers" style={footerLink}>Careers</a><br/>
+              <a href="/contact" style={footerLink}>Franchise Inquiry</a>
+            </div>
+            <div>
+              <h4 style={footerTitle}>Contact</h4>
+              <p style={{ fontSize: "14px", opacity: 0.8 }}>Navi Mumbai, India</p>
+              <p style={{ fontSize: "14px", opacity: 0.8 }}>Email: support@cerealswale.com</p>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "40px", paddingTop: "20px", textAlign: "center", fontSize: "12px", opacity: 0.6 }}>
+            © 2026 CATALYST SERVICE PRIVATE LIMITED. All Rights Reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
+// --- SUB-COMPONENTS ---
 function FeatureItem({ text }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#2e7d32", fontWeight: "600" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", color: "#2e7d32", fontWeight: "600" }}>
       <CheckCircle size={20} />
-      <span style={{ color: "#333" }}>{text}</span>
+      <span style={{ color: "#444" }}>{text}</span>
     </div>
   );
 }
 
-function NavCard({ title, icon, link, color }) {
+function StatCard({ count, label }) {
   return (
-    <a href={link} style={{
-      textDecoration: "none",
-      background: "white",
-      padding: "25px 20px",
-      borderRadius: "20px",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "12px",
-      boxShadow: "0 10px 25px rgba(0,0,0,0.06)",
-      transition: "all 0.3s",
-      borderBottom: `5px solid ${color}`
-    }}>
-      <div style={{ color: color }}>{icon}</div>
-      <span style={{ fontWeight: "700", color: "#333", fontSize: "15px" }}>{title}</span>
-    </a>
-  );
-}
-
-function SolutionCard({ title, icon, desc }) {
-  return (
-    <div style={{ background: "white", padding: "40px 30px", borderRadius: "20px", textAlign: "center", boxShadow: "0 8px 25px rgba(0,0,0,0.04)" }}>
-      <div style={{ fontSize: "50px", marginBottom: "20px" }}>{icon}</div>
-      <h3 style={{ color: "#1b5e20", marginBottom: "15px" }}>{title}</h3>
-      <p style={{ color: "#666", fontSize: "15px" }}>{desc}</p>
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <h3 style={{ fontSize: "32px", color: "#1b5e20", margin: "0" }}>{count}</h3>
+      <p style={{ margin: "5px 0 0", color: "#666", fontSize: "14px", fontWeight: "600" }}>{label}</p>
     </div>
   );
 }
+
+// --- STYLES ---
+const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
+const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "10px 0" };
+const logoArea = { display: "flex", alignItems: "center", gap: "10px" };
+const brandName = { fontWeight: "900", fontSize: "20px", color: "#1b5e20", letterSpacing: "1px" };
+const topNavLinks = { display: "flex", alignItems: "center", gap: "20px" };
+const topLink = { textDecoration: "none", color: "#666", fontSize: "14px", display: "flex", alignItems: "center", gap: "5px", fontWeight: "500" };
+const adminBtnStyle = { textDecoration: "none", color: "#d32f2f", border: "1px solid #d32f2f", padding: "4px 12px", borderRadius: "5px", fontSize: "12px", fontWeight: "bold" };
+
+const mainNavStyle = { background: "#f8fdf9", borderBottom: "2px solid #e8f5e9", padding: "15px 0" };
+const mainLinks = { display: "flex", gap: "30px", alignItems: "center" };
+const mainLink = { background: "none", border: "none", textDecoration: "none", color: "#333", fontWeight: "600", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center" };
+
+const dropdownStyle = { position: "absolute", top: "100%", left: 0, background: "white", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", borderRadius: "10px", width: "260px", padding: "10px", zIndex: 100 };
+const dropdownItem = { display: "block", padding: "12px", textDecoration: "none", color: "#333", fontSize: "14px", fontWeight: "500", borderRadius: "5px", transition: "0.2s", hover: { background: "#f1f8e9" } };
+
+const heroSectionStyle = { minHeight: "80vh", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", color: "white" };
+const heroHeading = { fontSize: "clamp(36px, 6vw, 65px)", fontWeight: "800", lineHeight: "1.1", marginBottom: "20px" };
+const heroSubheading = { fontSize: "clamp(18px, 2vw, 22px)", maxWidth: "700px", marginBottom: "40px", opacity: 0.9, lineHeight: "1.6" };
+
+const primaryBtn = { padding: "18px 35px", background: "#2e7d32", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 4px 15px rgba(0,0,0,0.3)" };
+const secondaryBtn = { padding: "18px 35px", border: "2px solid white", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", backdropFilter: "blur(5px)" };
+
+const statsSectionStyle = { background: "#fff", padding: "40px 0", borderBottom: "1px solid #eee" };
+const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" };
+
+const grid2Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" };
+const grid4Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "40px" };
+const sectionHeading = { fontSize: "40px", fontWeight: "800", marginBottom: "25px" };
+const textStyle = { color: "#555", lineHeight: "1.8", fontSize: "17px" };
+const aboutImgStyle = { width: "100%", borderRadius: "25px", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" };
+
+const footerStyle = { background: "#1b5e20", color: "white", padding: "80px 0 30px" };
+const footerTitle = { fontSize: "18px", marginBottom: "20px" };
+const footerLink = { color: "white", opacity: 0.7, textDecoration: "none", fontSize: "14px", lineHeight: "2.5" };
