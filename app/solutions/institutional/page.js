@@ -27,8 +27,7 @@ export default function InstitutionalSolution() {
               <h2 style={{ fontSize: "38px", color: "#1b5e20" }}>AI & Machine Learning Engine</h2>
               <p style={{ color: "#555", fontSize: "18px", lineHeight: "1.8" }}>
                 Our Artificial Intelligence engine correlates parameters like weather, soil health, and mandi trends 
-                to provide <b>Predictive Analytics</b> and <b>Early Warnings</b>. 
-                Manage quantity, quality, and availability with precision.
+                to provide <b>Predictive Analytics</b> and <b>Early Warnings</b>.
               </p>
             </div>
             <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
@@ -79,10 +78,12 @@ function PortalItem({ text }) {
 }
 
 // --- STYLES ---
+const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
 const heroInstStyle = { 
   minHeight: "80vh", 
   backgroundImage: "linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1454165833767-027eeef1593e?w=1600')", 
   backgroundSize: "cover", 
+  backgroundPosition: "center",
   display: "flex", 
   alignItems: "center" 
 };
