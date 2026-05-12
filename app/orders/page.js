@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Package, Clock, Truck, CheckCircle, Download, Loader2 } from "lucide-react";
+import { Package, Clock, Truck, CheckCircle, Download, Loader2, MapPin } from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -31,7 +31,7 @@ export default function OrdersPage() {
     });
   }, []);
 
-  // --- Invoice Generation Logic ---
+  // --- Invoice Generation Logic (Updated with Tracking ID) ---
   const downloadInvoice = (order) => {
     const printWindow = window.open('', '_blank');
     const invoiceHTML = `
@@ -64,6 +64,7 @@ export default function OrdersPage() {
             <div style="text-align: right;">
               <p><strong>Invoice Details:</strong></p>
               <p>Order ID: #${order.id.slice(-6)}<br>Date: ${new Date(order.date).toLocaleDateString()}<br>Status: ${order.status}</p>
+              ${order.trackingId ? `<p><strong>Tracking ID:</strong> ${order.trackingId}</p>` : ""}
             </div>
           </div>
           <table class="table">
@@ -126,19 +127,28 @@ export default function OrdersPage() {
                   {getStatusIcon(order.status)} {order.status}
                 </div>
               </div>
+
               <div style={orderFooter}>
                 <span>Quantity: <b>{order.quantity}</b></span>
                 <span>Total: <b style={{ color: "#1b5e20" }}>₹{order.price}</b></span>
                 <span>Date: {new Date(order.date).toLocaleDateString()}</span>
               </div>
+
+              {/* TRACKING ID DISPLAY (IF AVAILABLE) */}
+              {order.trackingId && (
+                <div style={trackingBoxStyle}>
+                  <Truck size={14} /> <b>Tracking ID:</b> {order.trackingId}
+                </div>
+              )}
               
-              {/* Invoice Button Added Surgically */}
-              <button 
-                onClick={() => downloadInvoice(order)}
-                style={invoiceBtnStyle}
-              >
-                <Download size={14} /> Download Invoice
-              </button>
+              <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+                <button 
+                  onClick={() => downloadInvoice(order)}
+                  style={invoiceBtnStyle}
+                >
+                  <Download size={14} /> Download Invoice
+                </button>
+              </div>
             </div>
           ))
         ) : (
@@ -155,8 +165,9 @@ export default function OrdersPage() {
 // Styles
 const orderCardStyle = { background: "white", padding: "20px", borderRadius: "15px", marginBottom: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #eee" };
 const orderHeader = { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0", paddingBottom: "10px" };
-const orderFooter = { display: "flex", justifyContent: "space-between", marginTop: "15px", fontSize: "14px", color: "#444", marginBottom: "15px" };
+const orderFooter = { display: "flex", justifyContent: "space-between", marginTop: "15px", fontSize: "14px", color: "#444", marginBottom: "10px" };
 const invoiceBtnStyle = { display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf2", color: "#1b5e20", border: "1px solid #1b5e20", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "bold", transition: "0.2s" };
+const trackingBoxStyle = { background: "#e8f5e9", color: "#2e7d32", padding: "8px 12px", borderRadius: "8px", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px", border: "1px dashed #2e7d32", marginBottom: "10px" };
 
 const statusBadge = (status) => ({
   display: "flex", alignItems: "center", gap: "5px", padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold",
