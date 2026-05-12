@@ -6,7 +6,7 @@ export default function Contact() {
         <div style={{ padding: "40px", background: "#1b5e20", color: "white" }}>
           <h2>Get In Touch</h2>
           <p>📧 Email: support@cerealswale.com</p>
-          <p>📞 Phone: +91 [Aapka Number]</p>
+          <p>📞 Phone: +91-2231430562</p>
           <p>📍 Office: Juhi Niharika Mirage, Kharghar Sector 10, Navi Mumbai 410210</p>
           <hr style={{ margin: "30px 0" }} />
           <h3>CATALYST SERVICE PRIVATE LIMITED</h3>
