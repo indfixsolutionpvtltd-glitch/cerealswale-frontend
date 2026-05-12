@@ -96,7 +96,6 @@ export default function ProductsPage() {
             <div key={p.id} style={productCard}>
               <div style={imgWrapper}>
                 {discountVal && <div style={discountTag}>{discountVal}<br/>OFF</div>}
-                {/* UPDATED: Image scale increased to fill more space */}
                 <img src={p.image || "/logo.png"} alt={p.name} style={imageStyle} />
                 <button onClick={() => handleAddToCart(p)} style={addBtn}>Add</button>
               </div>
@@ -163,13 +162,26 @@ export default function ProductsPage() {
   );
 }
 
-// --- UPDATED STYLES FOR LARGER IMAGES ---
-const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "15px" };
-const productCard = { background: "#fff", borderRadius: "15px", border: "1px solid #f0f0f0", overflow: "hidden", position: "relative", transition: "transform 0.2s" };
+// --- FIXED STYLES FOR PREMIUM LOOK ---
+const productGrid = { 
+  display: "grid", 
+  gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", // Width thodi badhayi card ki
+  gap: "20px" 
+};
+
+const productCard = { 
+  background: "#fff", 
+  borderRadius: "15px", 
+  border: "1px solid #f0f0f0", 
+  overflow: "hidden", 
+  position: "relative",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.02)" 
+};
 
 const imgWrapper = { 
-  background: "#fdfdfd", 
-  height: "300px", // Card height thodi badhayi
+  background: "#f9f9f9", 
+  width: "100%",
+  aspectRatio: "1 / 1", // Isse card hamesha square rahega (Perfect 300x300 look)
   display: "flex", 
   alignItems: "center", 
   justifyContent: "center", 
@@ -178,13 +190,13 @@ const imgWrapper = {
 };
 
 const imageStyle = { 
-  width: "100%", // Poori width cover karega
+  width: "100%", 
   height: "100%", 
-  objectFit: "cover", // Isse image badi aur card ke size ki dikhegi
+  objectFit: "cover", // Image poore card ko premium look mein cover karegi
   transition: "transform 0.3s ease" 
 };
 
-// ... baaki styles same rahenge ...
+// ... Baaki styles same rahenge ...
 const floatingCartBar = { position: "fixed", bottom: "20px", left: "5%", right: "5%", background: "#1b5e20", color: "white", padding: "12px 20px", borderRadius: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.3)", zIndex: 1000 };
 const cartCountIcon = { background: "white", color: "#1b5e20", width: "24px", height: "24px", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" };
 const viewCartBtn = { background: "transparent", border: "none", color: "white", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" };
