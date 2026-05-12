@@ -16,7 +16,6 @@ export default function AdminDashboard() {
   const [editId, setEditId] = useState(null);
   const [filterLowStock, setFilterLowStock] = useState(false);
 
-  // --- UPDATED STATE: Naye fields add kiye ---
   const [newProduct, setNewProduct] = useState({
     name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", 
     price: "", originalPrice: "", discount: "", stock: "", image: "", description: "", inStock: true
@@ -26,10 +25,20 @@ export default function AdminDashboard() {
   const liquidOptions = ["1 Litre", "5 Litre", "10 Litre"];
   const packetOptions = ["1 pc", "2 pc", "6 pc", "12 pc"];
 
+  // --- UPDATED LOGIC: Auth Check Before Data Fetch ---
   useEffect(() => {
     const authStatus = sessionStorage.getItem("admin_authenticated");
-    if (authStatus === "true") setIsAdminLoggedIn(true);
+    
+    if (authStatus === "true") {
+      setIsAdminLoggedIn(true);
+      fetchAdminData(); // Sirf authenticated hone par hi data mangega
+    } else {
+      setLoading(false); // Agar auth nahi hai, toh seedha login screen dikhao
+    }
+  }, []);
 
+  const fetchAdminData = () => {
+    // Products Fetch
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
@@ -39,6 +48,7 @@ export default function AdminDashboard() {
       }
     });
 
+    // Orders Fetch
     const ordersRef = ref(db, 'orders');
     onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
@@ -48,17 +58,18 @@ export default function AdminDashboard() {
       }
       setLoading(false);
     });
-  }, []);
-
-  const lowStockItems = products.filter(p => Number(p.stock) < 10);
-  const displayedProducts = filterLowStock ? lowStockItems : products;
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (adminPass === SECRET_ADMIN_PASSWORD) {
-      setIsAdminLoggedIn(true);
       sessionStorage.setItem("admin_authenticated", "true");
-    } else { alert("Galat Password! ❌"); }
+      setIsAdminLoggedIn(true);
+      setLoading(true); // Loading dikhao jab data fetch ho raha ho
+      fetchAdminData();
+    } else { 
+      alert("Galat Password! ❌"); 
+    }
   };
 
   const handleLogout = () => {
@@ -118,6 +129,11 @@ export default function AdminDashboard() {
     update(ref(db, `products/${id}`), { inStock: !currentStatus });
   };
 
+  const lowStockItems = products.filter(p => Number(p.stock) < 10);
+  const displayedProducts = filterLowStock ? lowStockItems : products;
+
+  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>CerealsWale Admin Panel loading...</div>;
+
   if (!isAdminLoggedIn) {
     return (
       <div style={loginOverlay}>
@@ -136,10 +152,9 @@ export default function AdminDashboard() {
     );
   }
 
-  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading Admin Panel...</div>;
-
   return (
     <div style={{ background: "#f4f7f6", minHeight: "100vh", padding: "30px 5%" }}>
+      {/* Header and rest of the UI remains exactly as it was */}
       <div style={headerSection}>
         <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Admin Control Center</h1>
         <div style={{display:"flex", gap:"10px"}}>
@@ -181,7 +196,6 @@ export default function AdminDashboard() {
               {newProduct.unitType === "Packet" && packetOptions.map(q => <option key={q} value={q}>{q}</option>)}
             </select>
 
-            {/* --- NAYE FIELDS: MRP aur DISCOUNT --- */}
             <input placeholder="Selling Price (₹)" type="number" style={inputStyle} value={newProduct.price} onChange={(e)=>setNewProduct({...newProduct, price:e.target.value})} />
             <input placeholder="MRP / Original Price (₹)" type="number" style={inputStyle} value={newProduct.originalPrice} onChange={(e)=>setNewProduct({...newProduct, originalPrice:e.target.value})} />
             <input placeholder="Discount % (e.g. 38)" type="number" style={inputStyle} value={newProduct.discount} onChange={(e)=>setNewProduct({...newProduct, discount:e.target.value})} />
