@@ -12,7 +12,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false); // Cart Editing Popup
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -37,7 +37,6 @@ export default function ProductsPage() {
     setFilteredProducts(results);
   }, [searchTerm, products]);
 
-  // --- CART LOGIC WITH EDITING ---
   const updateCart = (newCart) => {
     setCart(newCart);
     localStorage.setItem("cart", JSON.stringify(newCart));
@@ -77,7 +76,6 @@ export default function ProductsPage() {
   return (
     <div style={{ padding: "20px 5%", background: "#fcfcfc", minHeight: "100vh", paddingBottom: "100px" }}>
       
-      {/* Search Header */}
       <div style={searchContainer}>
         <Search size={20} color="#2e7d32" />
         <input 
@@ -98,6 +96,7 @@ export default function ProductsPage() {
             <div key={p.id} style={productCard}>
               <div style={imgWrapper}>
                 {discountVal && <div style={discountTag}>{discountVal}<br/>OFF</div>}
+                {/* UPDATED: Image scale increased to fill more space */}
                 <img src={p.image || "/logo.png"} alt={p.name} style={imageStyle} />
                 <button onClick={() => handleAddToCart(p)} style={addBtn}>Add</button>
               </div>
@@ -114,7 +113,6 @@ export default function ProductsPage() {
         })}
       </div>
 
-      {/* --- FLOATING VIEW CART BAR --- */}
       {cart.length > 0 && (
         <div style={floatingCartBar}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -130,7 +128,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* --- CART EDITING MODAL (POPUP) --- */}
       {isCartOpen && (
         <div style={modalOverlay}>
           <div style={modalContent}>
@@ -166,7 +163,28 @@ export default function ProductsPage() {
   );
 }
 
-// --- NEW STYLES ---
+// --- UPDATED STYLES FOR LARGER IMAGES ---
+const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "15px" };
+const productCard = { background: "#fff", borderRadius: "15px", border: "1px solid #f0f0f0", overflow: "hidden", position: "relative", transition: "transform 0.2s" };
+
+const imgWrapper = { 
+  background: "#fdfdfd", 
+  height: "180px", // Card height thodi badhayi
+  display: "flex", 
+  alignItems: "center", 
+  justifyContent: "center", 
+  position: "relative",
+  overflow: "hidden"
+};
+
+const imageStyle = { 
+  width: "100%", // Poori width cover karega
+  height: "100%", 
+  objectFit: "cover", // Isse image badi aur card ke size ki dikhegi
+  transition: "transform 0.3s ease" 
+};
+
+// ... baaki styles same rahenge ...
 const floatingCartBar = { position: "fixed", bottom: "20px", left: "5%", right: "5%", background: "#1b5e20", color: "white", padding: "12px 20px", borderRadius: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.3)", zIndex: 1000 };
 const cartCountIcon = { background: "white", color: "#1b5e20", width: "24px", height: "24px", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" };
 const viewCartBtn = { background: "transparent", border: "none", color: "white", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" };
@@ -178,14 +196,8 @@ const qtyControls = { display: "flex", alignItems: "center", gap: "10px" };
 const qtyBtn = { border: "1px solid #ddd", background: "white", borderRadius: "5px", padding: "2px 5px", cursor: "pointer" };
 const finalCheckoutBtn = { width: "100%", background: "#1b5e20", color: "white", border: "none", padding: "15px", borderRadius: "12px", marginTop: "20px", fontWeight: "bold", cursor: "pointer" };
 const cartItemsList = { maxHeight: "40vh", overflowY: "auto" };
-
-// --- PREVIOUS STYLES (Retained) ---
-const productGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "15px" };
-const productCard = { background: "#fff", borderRadius: "15px", border: "1px solid #f0f0f0", overflow: "hidden", position: "relative" };
-const imgWrapper = { background: "#f9f9f9", height: "160px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" };
-const imageStyle = { maxWidth: "80%", maxHeight: "80%", objectFit: "contain" };
-const discountTag = { position: "absolute", top: "10px", left: "10px", background: "#ffebee", color: "#d32f2f", padding: "4px 8px", borderRadius: "5px", fontSize: "10px", fontWeight: "bold", textAlign: "center" };
-const addBtn = { position: "absolute", bottom: "10px", right: "10px", background: "#ffb703", color: "white", border: "none", padding: "6px 15px", borderRadius: "12px", fontWeight: "bold", fontSize: "12px" };
+const discountTag = { position: "absolute", top: "10px", left: "10px", background: "#ffebee", color: "#d32f2f", padding: "4px 8px", borderRadius: "5px", fontSize: "10px", fontWeight: "bold", textAlign: "center", zIndex: 1 };
+const addBtn = { position: "absolute", bottom: "10px", right: "10px", background: "#ffb703", color: "white", border: "none", padding: "6px 15px", borderRadius: "12px", fontWeight: "bold", fontSize: "12px", zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" };
 const contentStyle = { padding: "12px" };
 const titleStyle = { fontSize: "14px", fontWeight: "600", color: "#333", margin: "0" };
 const qtyStyle = { fontSize: "11px", color: "#888", margin: "4px 0" };
@@ -193,5 +205,4 @@ const priceStyle = { fontSize: "16px", fontWeight: "bold", color: "#1b5e20" };
 const originalPriceStyle = { fontSize: "12px", color: "#888", textDecoration: "line-through" };
 const searchContainer = { display: "flex", alignItems: "center", gap: "10px", background: "white", padding: "10px 15px", borderRadius: "12px", border: "1px solid #eee", marginBottom: "25px" };
 const searchInput = { border: "none", outline: "none", width: "100%", fontSize: "14px" };
-const cartStatus = { display: "flex", alignItems: "center", gap: "8px", background: "#e8f5e9", color: "#2e7d32", padding: "6px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "bold" };
 const loaderStyle = { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#1b5e20", fontSize: "18px" };
