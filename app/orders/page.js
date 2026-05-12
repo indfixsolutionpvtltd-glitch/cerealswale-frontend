@@ -105,7 +105,7 @@ export default function OrdersPage() {
     }
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: "100px" }}>Orders load ho rahe hain...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: "100px" }}>Orders loading...</div>;
 
   return (
     <div style={{ padding: "40px 5%", background: "#f8fdf9", minHeight: "100vh" }}>
