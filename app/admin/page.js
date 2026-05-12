@@ -25,46 +25,29 @@ export default function AdminDashboard() {
   const liquidOptions = ["1 Litre", "5 Litre", "10 Litre"];
   const packetOptions = ["1 pc", "2 pc", "6 pc", "12 pc"];
 
-  // --- NAYA FUNCTION YAHAN HAI ---
   const fetchAdminData = () => {
-    setLoading(true); 
-    
-    try {
-      const productsRef = ref(db, 'products');
-      const ordersRef = ref(db, 'orders');
+    setLoading(true);
+    const productsRef = ref(db, 'products');
+    onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const prodList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setProducts(prodList);
+      }
+    }, (err) => setLoading(false));
 
-      onValue(productsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const prodList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          setProducts(prodList);
-        }
-        setLoading(false); 
-      }, (error) => {
-        console.error("Products Fetch Error:", error);
-        setLoading(false); 
-      });
-
-      onValue(ordersRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const orderList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          setOrders(orderList.sort((a, b) => new Date(b.date) - new Date(a.date)));
-        }
-        setLoading(false); 
-      }, (error) => {
-        console.error("Orders Fetch Error:", error);
-        setLoading(false);
-      });
-
-      setTimeout(() => {
-        setLoading(false);
-      }, 5000);
-
-    } catch (err) {
-      console.error("General Error:", err);
+    const ordersRef = ref(db, 'orders');
+    onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const orderList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setOrders(orderList.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      }
       setLoading(false);
-    }
+    });
+
+    // Safety Timeout
+    setTimeout(() => setLoading(false), 3000);
   };
 
   useEffect(() => {
@@ -88,16 +71,24 @@ export default function AdminDashboard() {
     }
   };
 
-  // ... baaki saara code (handleLogout, handleAddProduct, handleUpdateProduct, return UI) waisa hi rahega ...
-  // (Maine short kiya hai taaki aap sirf fetchAdminData par focus karein)
-
   const handleLogout = () => {
     sessionStorage.removeItem("admin_authenticated");
     setIsAdminLoggedIn(false);
     window.location.reload();
   };
 
-  if (loading) return <div style={{textAlign:"center", padding:"100px"}}>Loading Admin Panel...</div>;
+  const resetForm = () => {
+    setNewProduct({ name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", price: "", originalPrice: "", discount: "", stock: "", image: "", description: "", inStock: true });
+  };
+
+  const lowStockItems = products.filter(p => Number(p.stock) < 10);
+  const displayedProducts = filterLowStock ? lowStockItems : products;
+
+  // --- RENDERING LOGIC ---
+
+  if (loading) {
+    return <div style={{textAlign:"center", padding:"100px"}}>Loading CerealsWale Panel...</div>;
+  }
 
   if (!isAdminLoggedIn) {
     return (
@@ -117,18 +108,92 @@ export default function AdminDashboard() {
     );
   }
 
-  // Aapka original return UI yahan niche paste hoga
+  // AGAR LOGIN HAI TO YE DISPLAY HOGA
   return (
     <div style={{ background: "#f4f7f6", minHeight: "100vh", padding: "30px 5%" }}>
-       {/* ... Aapka table aur dashboard UI ... */}
-       <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Admin Control Center</h1>
+      <div style={headerSection}>
+        <h1 style={{ color: "#1b5e20", margin: 0 }}>🛡️ Admin Control Center</h1>
+        <div style={{display:"flex", gap:"10px"}}>
+          <button onClick={() => setFilterLowStock(!filterLowStock)} style={{...filterBtn, background: filterLowStock ? "#d32f2f" : "#fff"}}>
+            <AlertTriangle size={16} color={filterLowStock ? "#fff" : "#d32f2f"} />
+            {filterLowStock ? "Show All" : `Low Stock (${lowStockItems.length})`}
+          </button>
+          <button onClick={() => { setIsAdding(!isAdding); setEditId(null); resetForm(); }} style={isAdding ? cancelBtn : addBtn}>
+            {isAdding ? "Cancel" : "+ Add New Product"}
+          </button>
+          <button onClick={handleLogout} style={logoutBtn}><LogOut size={16}/> Logout</button>
+        </div>
+      </div>
+
+      <div style={statsGrid}>
+        <div style={statCard}><Package color="#1b5e20"/> <div><h3>{products.length}</h3><p>Products</p></div></div>
+        <div style={statCard}><ShoppingBag color="#1b5e20"/> <div><h3>{orders.length}</h3><p>Total Orders</p></div></div>
+        <div style={statCard}>
+          <TrendingUp color="#1b5e20"/> 
+          <div><h3>₹{products.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.stock)), 0)}</h3><p>Stock Value</p></div>
+        </div>
+      </div>
+
+      {isAdding && (
+        <div style={formCard}>
+          <h3 style={{color:"#1b5e20"}}>{editId ? "✏️ Edit Product" : "📦 Add New Product"}</h3>
+          <div style={gridForm}>
+            <input placeholder="Product Name" style={inputStyle} value={newProduct.name} onChange={(e)=>setNewProduct({...newProduct, name:e.target.value})} />
+            <input placeholder="Selling Price (₹)" type="number" style={inputStyle} value={newProduct.price} onChange={(e)=>setNewProduct({...newProduct, price:e.target.value})} />
+            <input placeholder="Stock Available" type="number" style={inputStyle} value={newProduct.stock} onChange={(e)=>setNewProduct({...newProduct, stock:e.target.value})} />
+            <input placeholder="Image URL" style={{...inputStyle, gridColumn: "span 2"}} value={newProduct.image} onChange={(e)=>setNewProduct({...newProduct, image:e.target.value})} />
+          </div>
+          <button style={saveBtn} onClick={() => alert("Ready to save!")}>Save Product</button>
+        </div>
+      )}
+
+      {/* --- INVENTORY TABLE --- */}
+      <h2 style={{color: "#1b5e20", marginTop: "40px"}}>Product Inventory</h2>
+      <div style={tableContainer}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#1b5e20", color: "white", textAlign: "left" }}>
+              <th style={thStyle}>Image</th>
+              <th style={thStyle}>Name</th>
+              <th style={thStyle}>Price</th>
+              <th style={thStyle}>Stock</th>
+              <th style={thStyle}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedProducts.map((p) => (
+              <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
+                <td style={tdStyle}><img src={p.image} style={{width:"40px", borderRadius:"5px"}} /></td>
+                <td style={tdStyle}><b>{p.name}</b></td>
+                <td style={tdStyle}>₹{p.price}</td>
+                <td style={tdStyle}>{p.stock}</td>
+                <td style={tdStyle}><Edit3 size={18} color="#1b5e20" /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
-// ... styles bhi waise hi rahenge ...
+// --- STYLES ---
+const headerSection = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" };
+const filterBtn = { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #d32f2f", color: "#d32f2f", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "12px" };
+const addBtn = { background:"#1b5e20", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer", fontWeight:"bold" };
+const cancelBtn = { background:"#666", color:"white", border:"none", padding:"10px 20px", borderRadius:"8px", cursor:"pointer" };
+const logoutBtn = { background:"#ffebee", color:"#d32f2f", border:"none", padding:"8px 15px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", gap:"5px", fontWeight:"bold" };
+const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "30px" };
+const statCard = { background: "white", padding: "20px", borderRadius: "15px", display: "flex", alignItems: "center", gap: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" };
 const loginOverlay = { height:"100vh", width:"100%", display:"flex", justifyContent:"center", alignItems:"center", background:"#f0fdf4" };
 const loginCard = { background:"white", padding:"40px", borderRadius:"20px", boxShadow:"0 10px 30px rgba(0,0,0,0.1)", textAlign:"center", width:"350px" };
 const loginInputGroup = { display:"flex", alignItems:"center", gap:"10px", background:"#f9f9f9", padding:"12px", borderRadius:"10px", border:"1px solid #ddd", marginBottom:"15px" };
 const loginInput = { border:"none", background:"none", outline:"none", width:"100%", fontSize:"16px" };
 const loginBtn = { width:"100%", padding:"12px", background:"#1b5e20", color:"white", border:"none", borderRadius:"10px", cursor:"pointer", fontWeight:"bold" };
+const formCard = { background:"white", padding:"25px", borderRadius:"15px", marginBottom:"30px", border:"1px solid #1b5e20" };
+const gridForm = { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:"15px" };
+const inputStyle = { width:"100%", padding:"12px", borderRadius:"8px", border:"1px solid #ddd" };
+const saveBtn = { width:"100%", padding:"15px", background:"#1b5e20", color:"white", border:"none", borderRadius:"10px", marginTop:"20px", fontWeight:"bold" };
+const tableContainer = { background: "white", borderRadius: "15px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" };
+const thStyle = { padding:"15px" };
+const tdStyle = { padding:"15px", fontSize:"13px" };
