@@ -51,7 +51,7 @@ export default function RootLayout({ children }) {
             <div style={containerStyle}>
               <div style={topHeaderContent}>
                 <div style={logoArea}>
-                  <img src="/logo.png" alt="Logo" style={{ height: "35px" }} />
+                  <img src="/logo.png" alt="Cerealswale Logo" style={headerLogoStyle} />
                   <span style={brandName}>CEREALSWALE</span>
                 </div>
                 
@@ -61,7 +61,7 @@ export default function RootLayout({ children }) {
                   {userName ? (
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={userBadge}>
-                        <User size={14} /> <span style={{textTransform: "capitalize"}}>{userName}</span>
+                        <User size={14} /> <span style={{ textTransform: "capitalize" }}>{userName}</span>
                       </div>
                       <button onClick={handleLogout} style={logoutBtn}><LogOut size={14} /></button>
                     </div>
@@ -92,7 +92,7 @@ export default function RootLayout({ children }) {
                     onMouseLeave={() => setIsSolutionsOpen(false)}
                   >
                     <button style={mainLink}>
-                      SOLUTIONS <ChevronDown size={14} style={{marginLeft:"4px"}} />
+                      SOLUTIONS <ChevronDown size={14} style={{ marginLeft: "4px" }} />
                     </button>
                     {isSolutionsOpen && (
                       <div style={dropdownStyle}>
@@ -128,40 +128,40 @@ export default function RootLayout({ children }) {
 
           {isMobileMenuOpen && (
             <div style={mobileDrawer}>
-               <Link href="/dashboard" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>DASHBOARD</Link>
-               <Link href="/solutions/farmers" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>FOR FARMERS</Link>
-               <Link href="/solutions/entrepreneurs" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>FOR ENTREPRENEURS</Link>
-               <Link href="/solutions/institutional" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>FOR BUYERS</Link>
-               <Link href="/contact" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>CONTACT</Link>
+              <Link href="/dashboard" style={mobileNavLink} onClick={() => setIsMobileMenuOpen(false)}>DASHBOARD</Link>
+              <Link href="/solutions/farmers" style={mobileNavLink} onClick={() => setIsMobileMenuOpen(false)}>FOR FARMERS</Link>
+              <Link href="/solutions/entrepreneurs" style={mobileNavLink} onClick={() => setIsMobileMenuOpen(false)}>FOR ENTREPRENEURS</Link>
+              <Link href="/solutions/institutional" style={mobileNavLink} onClick={() => setIsMobileMenuOpen(false)}>FOR BUYERS</Link>
+              <Link href="/contact" style={mobileNavLink} onClick={() => setIsMobileMenuOpen(false)}>CONTACT</Link>
             </div>
           )}
 
-          {/* Main Content Area */}
           <main style={{ minHeight: "80vh" }}>
             {children}
           </main>
 
-          {/* --- NEW FOOTER SECTION --- */}
+          {/* --- FOOTER SECTION --- */}
           <footer style={{ backgroundColor: '#f9f9f9', padding: '40px 20px', borderTop: '1px solid #ddd', marginTop: '50px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto' }}>
               
-              {/* Column 1: Company Details */}
               <div style={{ flex: '1', minWidth: '300px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.6', color: '#444' }}>
+                <img src="/Catalyst.png" alt="Catalyst Service Private Limited" style={footerLogoStyle} />
                 <h3 style={{ marginBottom: '15px', color: '#2e7d32' }}>CATALYST SERVICE PRIVATE LIMITED</h3>
                 <p>Office No 505 Juhi Niharika Mirage Kharghar Sector 10 District Raigarh Navi Mumbai 410210</p>
-                <p><strong>CIN:</strong> U62099MH2024PTC418993</p>
-                <p><strong>GSTN:</strong> 27AALCC6380M1Z1</p>
                 <p><strong>Phone:</strong> +91-2231430562</p>
               </div>
 
-              {/* Column 2: Support */}
               <div style={{ flex: '1', minWidth: '300px', marginBottom: '20px' }}>
-                <h3 style={{ marginBottom: '15px' }}>Support 🎧</h3>
-                <p>📧 <strong>Email:</strong> <a href="mailto:support@cerealswale.com" style={{ color: '#2e7d32', textDecoration: 'none' }}>support@cerealswale.com</a></p>
+                <h3 style={{ marginBottom: '15px', color: '#333' }}>Support</h3>
+                <p>
+                  <strong>Email:</strong>{' '}
+                  <a href="mailto:support@cerealswale.com" style={{ color: '#2e7d32', textDecoration: 'none' }}>
+                    support@cerealswale.com
+                  </a>
+                </p>
               </div>
             </div>
 
-            {/* Bottom Bar: Copyright & Links */}
             <div style={{ borderTop: '1px solid #eee', paddingTop: '20px', marginTop: '20px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', maxWidth: "1200px", margin: "20px auto 0", fontSize: '12px', color: '#666' }}>
               <p>© 2026 CATALYST SERVICE PRIVATE LIMITED. All Rights Reserved.</p>
               
@@ -175,7 +175,6 @@ export default function RootLayout({ children }) {
             </div>
           </footer>
 
-          {/* Floating WhatsApp Button */}
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={whatsappFloatBtn}>
             <MessageCircle size={30} color="white" />
           </a>
@@ -188,12 +187,13 @@ export default function RootLayout({ children }) {
 
 // --- STYLES ---
 const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 15px" };
-const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "8px 0" };
+const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "10px 0" };
 const topHeaderContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const logoArea = { display: "flex", alignItems: "center", gap: "8px" };
-const brandName = { fontSize: "16px", fontWeight: "bold", color: "#2e7d32", letterSpacing: "0.5px" };
-const topNavLinks = { display: "flex", gap: "12px", alignItems: "center" };
-const topLink = { textDecoration: "none", color: "#555", fontSize: "11px", fontWeight: "700" };
+const logoArea = { display: "flex", alignItems: "center", gap: "10px" };
+const headerLogoStyle = { height: "46px", maxWidth: "160px", objectFit: "contain", display: "block" };
+const brandName = { fontSize: "18px", fontWeight: "800", color: "#2e7d32", letterSpacing: "0.5px" };
+const topNavLinks = { display: "flex", gap: "14px", alignItems: "center" };
+const topLink = { textDecoration: "none", color: "#444", fontSize: "13px", fontWeight: "800" };
 
 const mainNavStyle = { background: "#f8fdf9", borderBottom: "2px solid #e8f5e9", padding: "12px 0", position: "sticky", top: 0, zIndex: 1000 };
 const mainNavContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
@@ -203,14 +203,15 @@ const mainLink = { background: "none", border: "none", textDecoration: "none", c
 const dropdownStyle = { position: "absolute", top: "100%", left: 0, background: "white", boxShadow: "0 8px 25px rgba(0,0,0,0.1)", borderRadius: "10px", width: "240px", padding: "8px", zIndex: 1100, border: "1px solid #eee" };
 const dropdownItem = { display: "block", padding: "10px", textDecoration: "none", color: "#333", fontSize: "12px", fontWeight: "600", borderRadius: "5px" };
 
-const userBadge = { display: "flex", alignItems: "center", gap: "4px", color: "#2e7d32", fontSize: "11px", fontWeight: "bold", background: "#e8f5e9", padding: "4px 8px", borderRadius: "20px" };
-const loginBtn = { color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "4px 10px", borderRadius: "5px", fontSize: "10px", fontWeight: "bold" };
-const regBtn = { background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "5px 12px", borderRadius: "5px", fontSize: "10px", fontWeight: "bold" };
+const userBadge = { display: "flex", alignItems: "center", gap: "4px", color: "#2e7d32", fontSize: "12px", fontWeight: "bold", background: "#e8f5e9", padding: "5px 9px", borderRadius: "20px" };
+const loginBtn = { color: "#2e7d32", textDecoration: "none", border: "1px solid #2e7d32", padding: "6px 12px", borderRadius: "5px", fontSize: "12px", fontWeight: "800" };
+const regBtn = { background: "#2e7d32", color: "#fff", textDecoration: "none", padding: "7px 13px", borderRadius: "5px", fontSize: "12px", fontWeight: "800" };
 const logoutBtn = { background: "none", border: "none", color: "#d32f2f", cursor: "pointer" };
-const adminLinkStyle = { color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "3px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: "bold" };
+const adminLinkStyle = { color: "#d32f2f", textDecoration: "none", border: "1px solid #d32f2f", padding: "5px 10px", borderRadius: "4px", fontSize: "12px", fontWeight: "800" };
 const iconLinkStyle = { color: "#2e7d32", textDecoration: "none", fontWeight: "700", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px" };
 const badgeStyle = { position: "absolute", top: "-8px", right: "-10px", background: "#d32f2f", color: "white", fontSize: "10px", width: "18px", height: "18px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", border: "2px solid white" };
 
+const footerLogoStyle = { width: "260px", maxWidth: "100%", height: "auto", display: "block", marginBottom: "14px", borderRadius: "4px" };
 const footerLink = { color: '#666', textDecoration: 'none', transition: 'color 0.2s' };
 const whatsappFloatBtn = { position: "fixed", bottom: "20px", right: "20px", backgroundColor: "#25d366", width: "55px", height: "55px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.2)", zIndex: 9999, textDecoration: "none" };
 
@@ -218,7 +219,6 @@ const mobileMenuBtn = { display: "none", cursor: "pointer", color: "#2e7d32" };
 const mobileDrawer = { position: "fixed", top: "110px", left: 0, right: 0, background: "white", padding: "20px", boxShadow: "0 10px 20px rgba(0,0,0,0.1)", zIndex: 1000, display: "flex", flexDirection: "column", gap: "15px" };
 const mobileNavLink = { textDecoration: "none", color: "#333", fontWeight: "bold", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" };
 
-// Global CSS for mobile responsiveness
 if (typeof window !== "undefined") {
   const style = document.createElement('style');
   style.innerHTML = `
