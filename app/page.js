@@ -150,4 +150,4 @@ const statLabel = { color: "#666", fontSize: "14px", fontWeight: "600", marginTo
 
 const aboutSectionStyle = { padding: "100px 0", background: "#fcfcfc" };
 const aboutTextContent = { paddingRight: "20px" };
-const aboutDescription = { color: "#555", lineHeight: "
+const aboutDescription = { color: "#555", lineHeight:
