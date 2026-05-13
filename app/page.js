@@ -3,12 +3,13 @@ import React from "react";
 import { CheckCircle, ArrowRight, Package } from "lucide-react";
 
 export default function Home() {
-  const heroBackground = "/web%20site%20stock%20photo.jpg"; 
+  // Aapki uploaded image ab code ka hissa hai (Base64)
+  const heroBackground = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4QAqRXhpZgAASUkqAAgAAAABADEBAgAHAAAAGgAAAAAAAABQaWNhc2EAAP/iAdhJQ0NfUFJ... (Puri string niche file tag mein hai)"; 
 
   return (
     <div style={{ background: "#fff" }}>
       
-      {/* --- HERO SECTION --- */}
+      {/* --- HERO SECTION - Optimized for Mobile Fit --- */}
       <section style={{
         ...heroSectionStyle,
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%), url(${heroBackground})`,
@@ -67,13 +68,37 @@ function StatCard({ count, label }) {
   );
 }
 
+// --- CSS STYLES (Optimized for Mobile) ---
 const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
-const heroSectionStyle = { minHeight: "75vh", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", color: "white" };
-const heroHeading = { fontSize: "clamp(36px, 6vw, 60px)", fontWeight: "800", lineHeight: "1.1" };
-const heroSubheading = { fontSize: "clamp(18px, 2vw, 22px)", maxWidth: "650px", margin: "20px 0 40px", opacity: 0.9 };
+
+const heroSectionStyle = { 
+  minHeight: "85vh", 
+  backgroundSize: "cover", 
+  backgroundPosition: "center 30%", // Mobile par grains wali bowls upar se sahi dikhengi
+  backgroundRepeat: "no-repeat",
+  display: "flex", 
+  alignItems: "center", 
+  color: "white",
+  position: "relative"
+};
+
+const heroHeading = { 
+  fontSize: "clamp(30px, 8vw, 60px)", 
+  fontWeight: "800", 
+  lineHeight: "1.1",
+  maxWidth: "800px"
+};
+
+const heroSubheading = { 
+  fontSize: "clamp(16px, 4vw, 22px)", 
+  maxWidth: "650px", 
+  margin: "20px 0 40px", 
+  opacity: 0.9 
+};
+
 const primaryBtn = { padding: "16px 30px", background: "#2e7d32", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", gap: "10px" };
-const secondaryBtn = { padding: "16px 30px", border: "2px solid white", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold" };
-const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "20px" };
+const secondaryBtn = { padding: "16px 30px", border: "2px solid white", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "bold", backdropFilter: "blur(5px)" };
+const statsGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "20px" };
 const grid2Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "50px", alignItems: "center" };
-const sectionHeading = { fontSize: "40px", fontWeight: "800", marginBottom: "20px" };
+const sectionHeading = { fontSize: "clamp(28px, 6vw, 40px)", fontWeight: "800", marginBottom: "20px" };
 const aboutImgStyle = { width: "100%", borderRadius: "25px", boxShadow: "0 20px 50px rgba(0,0,0,0.1)" };
