@@ -141,31 +141,54 @@ export default function RootLayout({ children }) {
           </main>
 
           {/* --- FOOTER SECTION --- */}
-          <footer style={{ backgroundColor: '#f9f9f9', padding: '40px 20px', borderTop: '1px solid #ddd', marginTop: '50px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto' }}>
-              
-              <div style={{ flex: '1', minWidth: '300px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.6', color: '#444' }}>
-                <img src="/Catalyst.png" alt="Catalyst Service Private Limited" style={footerLogoStyle} />
-                <h3 style={{ marginBottom: '15px', color: '#2e7d32' }}>CATALYST SERVICE PRIVATE LIMITED</h3>
-                <p>Office No 505 Juhi Niharika Mirage Kharghar Sector 10 District Raigarh Navi Mumbai 410210</p>
-                <p><strong>Phone:</strong> +91-2231430562</p>
+          <footer style={footerStyle}>
+            <div style={footerInnerStyle}>
+              <div style={footerBrandCard}>
+                <img
+                  src="/Catalyst.png"
+                  alt="Catalyst Service Private Limited"
+                  style={footerLogoStyle}
+                />
+
+                <h3 style={footerCompanyTitle}>
+                  CATALYST SERVICE PRIVATE LIMITED
+                </h3>
+
+                <p style={footerAddress}>
+                  Office No 505 Juhi Niharika Mirage Kharghar Sector 10 District
+                  Raigarh Navi Mumbai 410210
+                </p>
+
+                <p style={footerContactText}>
+                  ☎️ <strong>Phone:</strong>{" "}
+                  <a href="tel:+912231430562" style={footerContactLink}>
+                    +91-2231430562
+                  </a>
+                </p>
               </div>
 
-              <div style={{ flex: '1', minWidth: '300px', marginBottom: '20px' }}>
-                <h3 style={{ marginBottom: '15px', color: '#333' }}>Support</h3>
-                <p>
-                  <strong>Email:</strong>{' '}
-                  <a href="mailto:support@cerealswale.com" style={{ color: '#2e7d32', textDecoration: 'none' }}>
+              <div style={footerSupportCard}>
+                <h3 style={footerSupportTitle}>Support</h3>
+
+                <p style={footerContactText}>
+                  📬 <strong>Email:</strong>{" "}
+                  <a href="mailto:support@cerealswale.com" style={footerContactLink}>
                     support@cerealswale.com
                   </a>
+                </p>
+
+                <p style={footerSupportNote}>
+                  For order, delivery, refund, and product-related help.
                 </p>
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #eee', paddingTop: '20px', marginTop: '20px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', maxWidth: "1200px", margin: "20px auto 0", fontSize: '12px', color: '#666' }}>
-              <p>© 2026 CATALYST SERVICE PRIVATE LIMITED. All Rights Reserved.</p>
-              
-              <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <div style={footerBottomBar}>
+              <p style={{ margin: 0 }}>
+                © 2026 CATALYST SERVICE PRIVATE LIMITED. All Rights Reserved.
+              </p>
+
+              <div style={footerLinksWrap}>
                 <Link href="/privacy-policy" style={footerLink}>Privacy Policy</Link>
                 <Link href="/refund-policy" style={footerLink}>Refund Policy</Link>
                 <Link href="/shipping-policy" style={footerLink}>Shipping Policy</Link>
@@ -211,8 +234,117 @@ const adminLinkStyle = { color: "#d32f2f", textDecoration: "none", border: "1px 
 const iconLinkStyle = { color: "#2e7d32", textDecoration: "none", fontWeight: "700", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px" };
 const badgeStyle = { position: "absolute", top: "-8px", right: "-10px", background: "#d32f2f", color: "white", fontSize: "10px", width: "18px", height: "18px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", border: "2px solid white" };
 
-const footerLogoStyle = { width: "260px", maxWidth: "100%", height: "auto", display: "block", marginBottom: "14px", borderRadius: "4px" };
-const footerLink = { color: '#666', textDecoration: 'none', transition: 'color 0.2s' };
+const footerStyle = {
+  background: "linear-gradient(180deg, #f7fbf7 0%, #eef7ef 100%)",
+  padding: "46px 20px 28px",
+  borderTop: "1px solid #dfe9df",
+  marginTop: "50px"
+};
+
+const footerInnerStyle = {
+  display: "grid",
+  gridTemplateColumns: "minmax(280px, 1.35fr) minmax(260px, 0.85fr)",
+  gap: "28px",
+  maxWidth: "1200px",
+  margin: "0 auto"
+};
+
+const footerBrandCard = {
+  background: "#fff",
+  border: "1px solid #e4eee4",
+  borderRadius: "8px",
+  padding: "22px",
+  boxShadow: "0 8px 24px rgba(46, 125, 50, 0.08)"
+};
+
+const footerSupportCard = {
+  background: "#fff",
+  border: "1px solid #e4eee4",
+  borderRadius: "8px",
+  padding: "24px",
+  boxShadow: "0 8px 24px rgba(46, 125, 50, 0.08)",
+  alignSelf: "start"
+};
+
+const footerLogoStyle = {
+  width: "300px",
+  maxWidth: "100%",
+  height: "auto",
+  display: "block",
+  marginBottom: "18px",
+  borderRadius: "6px"
+};
+
+const footerCompanyTitle = {
+  margin: "0 0 12px",
+  color: "#2e7d32",
+  fontSize: "17px",
+  fontWeight: "800",
+  letterSpacing: "0.2px"
+};
+
+const footerAddress = {
+  margin: "0 0 14px",
+  color: "#334155",
+  fontSize: "14px",
+  lineHeight: "1.7"
+};
+
+const footerSupportTitle = {
+  margin: "0 0 16px",
+  color: "#111827",
+  fontSize: "20px",
+  fontWeight: "800"
+};
+
+const footerContactText = {
+  margin: "0 0 12px",
+  color: "#111827",
+  fontSize: "15px",
+  lineHeight: "1.7"
+};
+
+const footerContactLink = {
+  color: "#2e7d32",
+  textDecoration: "none",
+  fontWeight: "700"
+};
+
+const footerSupportNote = {
+  margin: "12px 0 0",
+  color: "#64748b",
+  fontSize: "13px",
+  lineHeight: "1.6"
+};
+
+const footerBottomBar = {
+  borderTop: "1px solid #dbe7db",
+  paddingTop: "18px",
+  margin: "28px auto 0",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "16px",
+  flexWrap: "wrap",
+  maxWidth: "1200px",
+  fontSize: "12px",
+  color: "#56616f"
+};
+
+const footerLinksWrap = {
+  display: "flex",
+  gap: "15px",
+  flexWrap: "wrap",
+  alignItems: "center"
+};
+
+const footerLink = {
+  color: "#475569",
+  textDecoration: "none",
+  transition: "color 0.2s",
+  fontWeight: "500"
+};
+
 const whatsappFloatBtn = { position: "fixed", bottom: "20px", right: "20px", backgroundColor: "#25d366", width: "55px", height: "55px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.2)", zIndex: 9999, textDecoration: "none" };
 
 const mobileMenuBtn = { display: "none", cursor: "pointer", color: "#2e7d32" };
