@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { ref, onValue, set, push, update, remove } from "firebase/database";
-import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Truck, CheckCircle, Ban, MapPin } from "lucide-react";
+import { ShoppingBag, Package, PlusCircle, Trash2, X, Lock, ShieldCheck, LogOut, Edit3, Save, TrendingUp, AlertTriangle, Truck, CheckCircle, Ban, MapPin, Hash } from "lucide-react";
 
 export default function AdminDashboard() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -15,6 +15,10 @@ export default function AdminDashboard() {
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState(null);
   const [filterLowStock, setFilterLowStock] = useState(false);
+  
+  // Naye states status aur tracking number handle karne ke liye
+  const [selectedStatus, setSelectedStatus] = useState({});
+  const [trackingNumbers, setTrackingNumbers] = useState({});
 
   const [newProduct, setNewProduct] = useState({
     name: "", category: "Rice", quantity: "1 KG", unitType: "Weight", 
@@ -25,7 +29,6 @@ export default function AdminDashboard() {
   const liquidOptions = ["1 Litre", "5 Litre", "10 Litre"];
   const packetOptions = ["1 pc", "2 pc", "6 pc", "12 pc"];
 
-  // Status options for Dropdown
   const statusOptions = [
     "🚚 Order Placed",
     "🚚 Shipped",
@@ -73,19 +76,25 @@ export default function AdminDashboard() {
     window.location.reload();
   };
 
-  // --- MERGED: AUTOMATIC STATUS & TRACKING LOGIC ---
-  const handleStatusSelect = (orderId, selectedStatus) => {
+  // --- FINAL MERGED LOGIC: Status + Tracking ID + Date ---
+  const handleFinalUpdate = (orderId) => {
+    const status = selectedStatus[orderId];
+    const trackNo = trackingNumbers[orderId] || "N/A";
+
+    if (!status) return alert("Pehle Status select karein! 🚚");
+
     const today = new Date();
     const formattedDate = today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     const formattedTime = today.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     
-    const finalStatusText = `${selectedStatus} (${formattedDate} - ${formattedTime})`;
+    // Status text format: 🚚 Shipped (ID: 12345) - 13 May, 2026
+    const finalTrackingText = `${status} (ID: ${trackNo}) | ${formattedDate} - ${formattedTime}`;
 
     update(ref(db, `orders/${orderId}`), { 
-      trackingId: finalStatusText,
-      status: selectedStatus.includes("Delivered") ? "Delivered" : "Shipped" 
+      trackingId: finalTrackingText,
+      status: status.includes("Delivered") ? "Delivered" : "Shipped" 
     });
-    alert("Order Status & Time Updated! ✅");
+    alert("Order Status & Tracking Updated! ✅");
   };
 
   const rejectOrder = (orderId) => {
@@ -205,7 +214,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* --- ORDERS WITH AUTO-TRACKING DROPDOWN --- */}
       <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Truck size={24}/> Manage Customer Orders</h2>
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -213,8 +221,8 @@ export default function AdminDashboard() {
             <tr style={{ background: "#2e7d32", color: "white", textAlign: "left" }}>
               <th style={thStyle}>Customer & Address</th>
               <th style={thStyle}>Product Details</th>
-              <th style={thStyle}>Update Status & Date</th>
-              <th style={thStyle}>Current Tracking</th>
+              <th style={thStyle}>Update Status & ID</th>
+              <th style={thStyle}>Current Status</th>
               <th style={thStyle}>Action</th>
             </tr>
           </thead>
@@ -224,27 +232,38 @@ export default function AdminDashboard() {
                 <td style={tdStyle}>
                   <b>{o.userName}</b><br/>
                   <small>{o.userMobile}</small><br/>
-                  <div style={{color: "#d32f2f", fontSize: "11px", marginTop: "5px", maxWidth:"200px"}}>
-                    <MapPin size={12} style={{display:"inline"}}/> {o.address || "Address Not Available"}
+                  <div style={{color: "#d32f2f", fontSize: "11px", marginTop: "5px"}}>
+                    <MapPin size={12} style={{display:"inline"}}/> {o.address || "No Address"}
                   </div>
                 </td>
                 <td style={tdStyle}>{o.productName} <br/><b style={{color: "#1b5e20"}}>₹{o.price}</b></td>
                 
-                {/* AUTO-STATUS DROPDOWN */}
+                {/* MERGED STATUS & TRACKING INPUT */}
                 <td style={tdStyle}>
-                  <select 
-                    style={{...inputStyle, padding:"8px", fontSize:"12px"}}
-                    onChange={(e) => handleStatusSelect(o.id, e.target.value)}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Choose Tracking Status...</option>
-                    {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
+                  <div style={{display:"flex", flexDirection:"column", gap:"8px"}}>
+                    <select 
+                      style={{...inputStyle, padding:"5px", fontSize:"12px"}}
+                      onChange={(e) => setSelectedStatus({...selectedStatus, [o.id]: e.target.value})}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Choose Status...</option>
+                      {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                    <input 
+                      placeholder="Enter Tracking No." 
+                      style={{...inputStyle, padding:"5px", fontSize:"12px"}}
+                      onChange={(e) => setTrackingNumbers({...trackingNumbers, [o.id]: e.target.value})}
+                    />
+                    <button 
+                      onClick={() => handleFinalUpdate(o.id)}
+                      style={{background:"#1b5e20", color:"white", border:"none", fontSize:"10px", borderRadius:"4px", cursor:"pointer", padding:"5px"}}
+                    >Update Status</button>
+                  </div>
                 </td>
 
                 <td style={tdStyle}>
-                   <div style={{fontSize:"11px", fontWeight:"bold", color:"#1b5e20"}}>
-                     {o.trackingId || "No Status Set"}
+                   <div style={{fontSize:"11px", fontWeight:"bold", color:"#1b5e20", maxWidth:"150px"}}>
+                     {o.trackingId || "No Tracking Yet"}
                    </div>
                 </td>
                 
@@ -257,7 +276,6 @@ export default function AdminDashboard() {
         </table>
       </div>
 
-      {/* --- INVENTORY --- */}
       <h2 style={{color: "#1b5e20", marginTop: "40px"}}><Package size={24}/> Product Inventory</h2>
       <div style={tableContainer}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
