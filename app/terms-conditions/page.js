@@ -1,6 +1,3 @@
-Ye updated `terms-conditions/page.js` code hai. Isko file me paste karte waqt sirf `import React...` se lekar last `}` tak paste karein, triple backticks paste na karein.
-
-```jsx
 import React from 'react';
 
 export default function TermsConditions() {
@@ -248,4 +245,3 @@ export default function TermsConditions() {
     </div>
   );
 }
-```
