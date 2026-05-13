@@ -1,91 +1,100 @@
 "use client";
-import { useState } from "react";
-import { db } from "../../lib/firebase"; // Database import
-import { ref, set, get } from "firebase/database";
+import React, { useState, useEffect } from "react";
+import { auth, db } from "../../lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { ref, set } from "firebase/database";
+import { Phone, Lock, User, MapPin } from "lucide-react";
 
 export default function Register() {
-  const [formData, setFormData] = useState({
-    name: "",
-    mobile: "",
-    email: "",
-    address: "",
-    dob: "", // 👈 DOB State add ki gayi hai
-    password: ""
-  });
+  const [step, setStep] = useState(1); // 1: Info, 2: OTP
+  const [formData, setInfo] = useState({ name: "", mobile: "+91", address: "" });
+  const [otp, setOtp] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
-  const handleRegister = async () => {
-    const { name, mobile, email, address, dob, password } = formData;
-
-    // Validation update: dob check bhi add kiya gaya hai
-    if (!name || !mobile || !email || !address || !dob || !password) {
-      alert("Kripya saari details (DOB ke sath) bharein! ⚠️");
-      return;
+  // Recaptcha setup (Security ke liye zaroori hai)
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible'
+      });
     }
+  };
+
+  // Step 1: OTP bhejna
+  const sendOtp = async (e) => {
+    e.preventDefault();
+    if (formData.mobile.length < 13) return alert("Sahi mobile number (+91 ke saath) bharein!");
+    
+    setupRecaptcha();
+    const appVerifier = window.recaptchaVerifier;
 
     try {
-      // 1. Pehle check karein ki mobile number already registered toh nahi hai
-      const userRef = ref(db, 'users/' + mobile);
-      const snapshot = await get(userRef);
+      const result = await signInWithPhoneNumber(auth, formData.mobile, appVerifier);
+      setConfirmationResult(result);
+      setStep(2);
+      alert("OTP bhej diya gaya hai! 📲");
+    } catch (error) {
+      console.error(error);
+      alert("OTP bhejne mein dikkat hui: " + error.message);
+    }
+  };
 
-      if (snapshot.exists()) {
-        alert("Ye Mobile Number pehle se registered hai! ❌");
-        return;
-      }
-
-      // 2. Database mein permanent save karein (DOB ke sath)
-      await set(userRef, {
-        name,
-        mobile,
-        email,
-        address,
-        dob, // 👈 DOB database mein save ho raha hai
-        password,
+  // Step 2: OTP Verify karna aur Data Save karna
+  const verifyOtp = async (e) => {
+    e.preventDefault();
+    try {
+      await confirmationResult.confirm(otp);
+      
+      // Firebase Realtime DB mein user save karna
+      await set(ref(db, 'users/' + formData.mobile.replace("+91", "")), {
+        name: formData.name,
+        mobile: formData.mobile.replace("+91", ""),
+        address: formData.address,
         createdAt: new Date().toISOString()
       });
 
-      alert("Registration Successful! DOB ke sath data save ho gaya ✅");
-      window.location.href = "/login";
+      // Local storage mein login details save karna
+      localStorage.setItem("cw_user", JSON.stringify({
+        name: formData.name,
+        mobile: formData.mobile.replace("+91", ""),
+        address: formData.address
+      }));
+
+      alert("Registration Successful! 🌾");
+      window.location.href = "/";
     } catch (error) {
-      alert("Error: " + error.message);
+      alert("Galat OTP! ❌");
     }
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#f4fff2", padding: "20px" }}>
-      <div style={{ background: "white", padding: "40px", borderRadius: "15px", width: "100%", maxWidth: "400px", boxShadow: "0px 10px 30px rgba(0,0,0,0.1)" }}>
-        <h1 style={{ textAlign: "center", color: "#1b5e20", marginBottom: "30px" }}>Naya Account Banayein</h1>
+    <div style={containerStyle}>
+      <div id="recaptcha-container"></div>
+      <div style={cardStyle}>
+        <h2>{step === 1 ? "Create Account" : "Verify Mobile"}</h2>
         
-        <input type="text" placeholder="Pura Naam" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={inputStyle} />
-        
-        <input type="number" placeholder="Mobile Number (Login ID)" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} style={inputStyle} />
-        
-        <input type="email" placeholder="Email ID" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={inputStyle} />
-        
-        {/* --- Date of Birth Input Field --- */}
-        <div style={{marginTop: "15px"}}>
-          <label style={{fontSize: "12px", color: "#666", marginLeft: "5px"}}>Date of Birth (DOB)</label>
-          <input 
-            type="date" 
-            value={formData.dob} 
-            onChange={(e) => setFormData({...formData, dob: e.target.value})} 
-            style={{...inputStyle, marginTop: "5px"}} 
-          />
-        </div>
-
-        <textarea placeholder="Pura Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} style={{...inputStyle, height: "80px"}} />
-        
-        <input type="password" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} style={inputStyle} />
-        
-        <button onClick={handleRegister} style={btnStyle}>Register Karein</button>
-        
-        <p style={{textAlign: "center", marginTop: "15px", fontSize: "14px"}}>
-          Pehle se account hai? <a href="/login" style={{color: "#43a047", fontWeight: "bold"}}>Login Karein</a>
-        </p>
+        {step === 1 ? (
+          <form onSubmit={sendOtp}>
+            <input placeholder="Full Name" style={inputStyle} onChange={(e)=>setInfo({...formData, name:e.target.value})} required />
+            <input placeholder="Mobile (with +91)" style={inputStyle} value={formData.mobile} onChange={(e)=>setInfo({...formData, mobile:e.target.value})} required />
+            <input placeholder="Delivery Address" style={inputStyle} onChange={(e)=>setInfo({...formData, address:e.target.value})} required />
+            <button type="submit" style={btnStyle}>Get OTP 📲</button>
+          </form>
+        ) : (
+          <form onSubmit={verifyOtp}>
+            <p>Enter 6-digit OTP sent to {formData.mobile}</p>
+            <input placeholder="Enter OTP" style={inputStyle} onChange={(e)=>setOtp(e.target.value)} required />
+            <button type="submit" style={btnStyle}>Verify & Register ✅</button>
+            <button type="button" onClick={()=>setStep(1)} style={{background:"none", border:"none", color:"#666", marginTop:"10px", cursor:"pointer"}}>Change Number</button>
+          </form>
+        )}
       </div>
     </div>
   );
 }
 
-// Styles
-const inputStyle = { width: "100%", padding: "12px", marginTop: "15px", boxSizing: "border-box", borderRadius: "8px", border: "1px solid #ddd", outline: "none" };
-const btnStyle = { width: "100%", padding: "14px", marginTop: "25px", background: "#43a047", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "16px", fontWeight: "bold" };
+// Simple Styles
+const containerStyle = { height:"80vh", display:"flex", justifyContent:"center", alignItems:"center", background:"#f4f7f6" };
+const cardStyle = { background:"#fff", padding:"40px", borderRadius:"20px", width:"350px", boxShadow:"0 10px 30px rgba(0,0,0,0.05)", textAlign:"center" };
+const inputStyle = { width:"100%", padding:"12px", marginBottom:"15px", borderRadius:"8px", border:"1px solid #ddd", boxSizing:"border-box" };
+const btnStyle = { width:"100%", padding:"12px", background:"#2e7d32", color:"white", border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:"bold" };
