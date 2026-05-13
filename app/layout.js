@@ -42,7 +42,8 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: "'Segoe UI', Roboto, sans-serif", background: "#fcfcfc" }}>
+      {/* FIXED: Body se background color hata diya hai taaki home page image clear dikhe */}
+      <body style={{ margin: 0, fontFamily: "'Segoe UI', Roboto, sans-serif", background: "transparent" }}>
         <CartProvider>
           
           {/* --- TOP HEADER (Column 1) --- */}
@@ -107,7 +108,6 @@ export default function RootLayout({ children }) {
                   <a href="/contact" style={mainLink}>CONTACT US</a>
                 </div>
 
-                {/* Right Icons: Cart & Orders */}
                 <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                   {userName && (
                     <a href="/orders" style={iconLinkStyle}>
@@ -118,7 +118,6 @@ export default function RootLayout({ children }) {
                     <ShoppingCart size={22} />
                     {cartCount > 0 && <span style={badgeStyle}>{cartCount}</span>}
                   </a>
-                  {/* Mobile Menu Toggle */}
                   <div style={mobileMenuBtn} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                   </div>
@@ -127,7 +126,6 @@ export default function RootLayout({ children }) {
             </div>
           </nav>
 
-          {/* Mobile Side Menu */}
           {isMobileMenuOpen && (
             <div style={mobileDrawer}>
                <a href="/dashboard" style={mobileNavLink} onClick={()=>setIsMobileMenuOpen(false)}>DASHBOARD</a>
@@ -138,9 +136,11 @@ export default function RootLayout({ children }) {
             </div>
           )}
 
-          {children}
+          {/* Har page ka content yahan load hoga */}
+          <main style={{ minHeight: "100vh" }}>
+            {children}
+          </main>
 
-          {/* WhatsApp Floating Button */}
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={whatsappFloatBtn}>
             <MessageCircle size={30} color="white" />
           </a>
@@ -151,7 +151,7 @@ export default function RootLayout({ children }) {
   );
 }
 
-// --- MOBILE FRIENDLY STYLES ---
+// --- STYLES ---
 const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 15px" };
 const topHeaderStyle = { background: "#fff", borderBottom: "1px solid #eee", padding: "8px 0" };
 const topHeaderContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
@@ -162,7 +162,7 @@ const topLink = { textDecoration: "none", color: "#555", fontSize: "11px", fontW
 
 const mainNavStyle = { background: "#f8fdf9", borderBottom: "2px solid #e8f5e9", padding: "12px 0", position: "sticky", top: 0, zIndex: 1000 };
 const mainNavContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const desktopLinks = { display: "flex", gap: "20px", alignItems: "center" }; // Responsive handled by CSS/MediaQuery
+const desktopLinks = { display: "flex", gap: "20px", alignItems: "center" };
 const mainLink = { background: "none", border: "none", textDecoration: "none", color: "#333", fontWeight: "700", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center" };
 
 const dropdownStyle = { position: "absolute", top: "100%", left: 0, background: "white", boxShadow: "0 8px 25px rgba(0,0,0,0.1)", borderRadius: "10px", width: "240px", padding: "8px", zIndex: 1100, border: "1px solid #eee" };
@@ -178,12 +178,10 @@ const badgeStyle = { position: "absolute", top: "-8px", right: "-10px", backgrou
 
 const whatsappFloatBtn = { position: "fixed", bottom: "20px", right: "20px", backgroundColor: "#25d366", width: "55px", height: "55px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.2)", zIndex: 9999, textDecoration: "none" };
 
-// Mobile specific
-const mobileMenuBtn = { display: "none", cursor: "pointer", color: "#2e7d32" }; // Normally handled by media query
+const mobileMenuBtn = { display: "none", cursor: "pointer", color: "#2e7d32" };
 const mobileDrawer = { position: "fixed", top: "110px", left: 0, right: 0, background: "white", padding: "20px", boxShadow: "0 10px 20px rgba(0,0,0,0.1)", zIndex: 1000, display: "flex", flexDirection: "column", gap: "15px" };
 const mobileNavLink = { textDecoration: "none", color: "#333", fontWeight: "bold", fontSize: "16px", borderBottom: "1px solid #eee", paddingBottom: "10px" };
 
-// CSS for hiding desktop links on mobile (Standard approach in Next/React inline styles)
 if (typeof window !== "undefined") {
   const style = document.createElement('style');
   style.innerHTML = `
