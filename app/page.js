@@ -3,8 +3,8 @@ import React from "react";
 import { CheckCircle, ArrowRight, Package } from "lucide-react";
 
 export default function Home() {
-  // Hero Background Image URL
-  const heroBackground = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2000&auto=format&fit=crop";
+  // FIXED: Professional Cereals & Agriculture Background URL
+  const heroBackground = "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?q=80&w=2000&auto=format&fit=crop";
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
@@ -14,7 +14,7 @@ export default function Home() {
         <div style={bgImageContainer}>
           <img 
             src={heroBackground} 
-            alt="Cereals Background" 
+            alt="Agriculture Grains Background" 
             style={bgImageStyle} 
           />
           <div style={heroOverlay}></div>
@@ -87,7 +87,7 @@ function StatCard({ count, label }) {
   );
 }
 
-// --- STYLES (Surgically Cleaned) ---
+// --- STYLES ---
 const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 20px" };
 
 const heroSectionStyle = { 
@@ -112,7 +112,7 @@ const bgImageStyle = {
   width: "100%",
   height: "100%",
   objectFit: "cover",
-  objectPosition: "center 30%"
+  objectPosition: "center"
 };
 
 const heroOverlay = {
@@ -121,7 +121,8 @@ const heroOverlay = {
   left: 0,
   width: "100%",
   height: "100%",
-  background: "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 100%)",
+  // Thoda dark gradient taaki white text achhe se dikhe
+  background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)",
   zIndex: 2
 };
 
